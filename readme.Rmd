@@ -2,19 +2,27 @@
 title: "Biomass estimation for FIRE-RES WP5.2??"
 author: "Francesco Pirotti, Erico Kutchartt"
 date: "26/7/2022"
-output: html_document
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
 ---
 
+ 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+# Biomass estimation for FIRE-RES
+
+xxxx description (Erico?)
 
 ## Data
 
 The following data sources are used:
 
-
-####  Dependent variable: 
+###  Dependent variable: 
 
  - Above Ground Biomass. We used as proxy the biomass from CEDA Santoro et al. 
     - Year: 2018
@@ -23,7 +31,18 @@ The following data sources are used:
       - **Above ground biomass**
       - **Above ground biomass standard error**
 
-####  Independent variables (aka descriptors): 
+###  Independent variables: 
+
+Also referred to as "features" or "descriptors", these are variables that are 
+likely to be correlated, and thus help to predict,  the biomass in a specific
+location. 
+
+In general obvious variables such as forest canopy cover fraction and 
+tree height values are used, but also more indirect variables such as climatic
+variables, height above sea level, forest types etc... are used in the 
+machine learning predictive algorithm. 
+
+
 
  - [COPERNICUS_Landcover_100m_Proba-V-C3_Global](https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_Landcover_100m_Proba-V-C3_Global){target=_blank}
     - Year: 2019
@@ -67,12 +86,14 @@ The following data sources are used:
 
 ## The code in Google Earth Engine
 
+[Link to GEE code](https://code.earthengine.google.com/?scriptPath=users%2Fcirgeo%2Fpirotti%3AFIRE-RES%2Ffire-res-biomass_ML){target=_blank}
+
+
 ### Masking non-burnable areas
 
 First we mask the LULC map removing non-burnable areas as per Scott and Burgan NB(1,2,3) etc...
 
 ```{javascript}
-
 var lulc_mask = LULC.neq(0)
                     .multiply(LULC.neq(40)) // agriculture (NB3)
                     .multiply(LULC.neq(50))  // urban (NB1)
@@ -102,6 +123,17 @@ training data from ground samples.
 The continous biomass information was grouped in 10 categories:
 
 ??2000 samples per land cover category and biomass  for a total of 26000 samples 
+
+### Problems and solutions
+
+#### Data size
+
+Maximum size of data tables in R is about 2 billion elements. 
+A 100 m resolution raster of Western Europe (Spain + Portugal) as in figure below, has 
+about 26 million cells with biomass above 0 Mg/ha. 
+ 
+<img src="man/images/figure1.jpg" style="width:100%" />  />
+<label >Figure 1 - Bioclimatic variable Annual Precipitation</label>
 
 This allow to have a balanced representation of the different cover classes 
 and of different biomass scenarios.
