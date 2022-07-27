@@ -132,7 +132,7 @@ Maximum size of data tables in R is about 2 billion elements.
 A 100 m resolution raster of Western Europe (Spain + Portugal) as in figure below, has 
 about 26 million cells with biomass above 0 Mg/ha. 
  
-<img src="man/images/figure1.jpg" style="width:100%" />  />
+<img src="man/images/figure1.jpg" style="width:100%" />  
 <label >Figure 1 - Bioclimatic variable Annual Precipitation</label>
 
 This allow to have a balanced representation of the different cover classes 
