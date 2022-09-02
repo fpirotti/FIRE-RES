@@ -5,16 +5,53 @@ date: "26/7/2022"
 output:
   html_document:
     toc: true
+    self_contained: no
     toc_depth: 3
-    toc_float: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+  github_document: default
 ---
 
  
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+ 
+<style>
+.zoomDiv {
+  opacity: 0;
+  position:absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 50;
+  transform: translate(-50%, -50%);
+  box-shadow: 0px 0px 50px #888888;
+  max-height:100%; 
+  overflow: scroll;
+}
 
-# Biomass estimation for FIRE-RES
+.zoomImg {
+  width: 100%;
+}
+</style>
+
+<script type="text/javascript">
+  var tmpwidth=0;
+  $(document).ready(function() {
+         $(function() {
+             $("img").click(function(e) {  
+             if( tmpwidth != 0 ){   
+                $(this).width(tmpwidth);
+                tmpwidth = 0; 
+             } else{
+                tmpwidth = $(this).width();
+                $(this).width($(this).width()*2);
+             }
+             });
+         });   
+  });
+</script>
 
 xxxx description (Erico?)
 
@@ -24,9 +61,10 @@ The following data sources are used:
 
 ###  Dependent variable: 
 
- - Above Ground Biomass. We used as proxy the biomass from CEDA Santoro et al. 
+ - [Above Ground Biomass](https://data.ceda.ac.uk/neodc/esacci/biomass/data/agb/maps/v3.0). 
+ We used as proxy the biomass from ESA Biomass Climate Change Initiative (Biomass_cci): Global datasets of forest above-ground biomass for the years  v3
     - Year: 2018
-    - Resolution:100 m
+    - Resolution: ≈100 m (actually in degrees so depends on latitude)
     - Layers: 
       - **Above ground biomass**
       - **Above ground biomass standard error**
@@ -52,10 +90,39 @@ machine learning predictive algorithm.
       - **forest type**
       - **forest canopy cover %**
   
- - Canopy height from ETH ....
-    - Year: 2019??
+ - [Canopy height from ETH](https://nlang.users.earthengine.app/view/global-canopy-height-2020?fbclid=IwAR1gc3R5uGr04PswUVzWekvykmcdJRRpL7kzYXcAxzdYZl1U5_1wJvPl2YM){target=_blank}
+    - Year: 2020
     - Resolution: 10 m
-    - Layers: **canopy height**
+    - Layers were aggregated to 100 m: 
+      - Average - **canopy height_mean**
+      - Sum - **canopy height_sum**
+    Lang, N., Jetz, W., Schindler, K., & Wegner, J. D. (2022). A high-resolution canopy height model of the Earth. arXiv preprint arXiv:2204.08322
+     
+ - [Annual NDVI Composite](https://developers.google.com/earth-engine/datasets/catalog/VITO_PROBAV_C1_S1_TOC_100M)
+ The 100 m resolution
+ [More info](https://proba-v.vgt.vito.be/sites/proba-v.vgt.vito.be/files/products_user_manual.pdf)
+ NDVI is well-known to be related to biomass values, even if the prediction
+ efficiency decreases at high biomass values. 
+    - Year: 2020
+    - Every 5 days
+    - Resolution: 100 m 
+      - Temporal composite - **ndvi**
+
+ - [ALOS PALSAR2](https://developers.google.com/earth-engine/datasets/catalog/JAXA_ALOS_PALSAR_YEARLY_SAR)
+ SAR backscatter is related to the amount of vegetation available in the area. 
+    - Year: 2020
+    - Resolution: 25 m
+    - Layers were aggregated to 100 m: 
+      - Average HV polarization - **HV**
+
+
+
+ - [SRTM Elevation Grid](https://developers.google.com/earth-engine/datasets/catalog/CGIAR_SRTM90_V4?hl=en){target=_blank}
+    - Year: 2000
+    - Resolution: 90 m
+    - Layers: 
+		- **elevation** 
+		
  - [Bioclimatic variables from WorldClim (Berkeley University)](developers.google.com/earth-engine/datasets/catalog/WORLDCLIM_V1_BIO){target=_blank}
     - Year: 1960-1991
     - Resolution: 1000 m
@@ -80,11 +147,12 @@ machine learning predictive algorithm.
 		- **bio18**	Precipitation of warmest quarter	0	6090	mm	0
 		- **bio19**	Precipitation of coldest quarter	0	5162	mm	0
 
-```{r cars}
-#  download.file("")
-```
+ 
+## Data pre-processing
 
-## The code in Google Earth Engine
+
+Data collection and preparation was carried out in **Google Earth Engine**.
+
 
 [Link to GEE code](https://code.earthengine.google.com/?scriptPath=users%2Fcirgeo%2Fpirotti%3AFIRE-RES%2Ffire-res-biomass_ML){target=_blank}
 
@@ -103,40 +171,104 @@ var lulc_mask = LULC.neq(0)
                     .multiply(LULC.neq(200)) // OCEAN  (NB8)
 ``` 
  
+All data were reprojected to geographic WGS84 (EPSG:4326) coordinates 
+with ≈100 m 
 
-### Collecting training/testing/validation data
+≈220'000 sample points were taken from the area by stratified sampling
+using, as strata, the 13 LULC classes and biomass classes at 10 Mg/ha
+intervals, for a total of 48 biomass classes. This allowed for a balanced
+representation of different land use (shrub to thick forest) and of
+estimated biomass at pixel level. 
+
+## Training AI
 
 Biomass ground truth data are not easily reached due to the very different 
-sampling protocols and to many countries not providing the information 
+sampling protocols and many countries not providing the information 
 as open data. 
-Some dedicated EU projects, such as GLOBIOMASS, were funded for the main
+
+Some dedicated EU projects, such as GLOBIOMASS, were funded with the main
 goal to create biomass maps. We therefore decided to use these maps
 for training an ensemble of machine learning methods using as descriptors the 
-data-rich environment created by collecting the above-listed data.
+data-rich environment from the above-listed data, **for a total of 27 variables
+as features**. 
 
+The plot below shows the relation between the variables and the 
+biomass.
+
+<img id="id1" src="man/images/variables.jpg" style="width:500px;" />  
+
+
+
+ 
 The rationale behind this decision is that the dependent variable, i.e. the
 AGB, is mapped with a well-documented uncertainty via the 2018 CEDA biomass map. 
 By collecting a large number of samples from the area with stratified sampling
 that accounts for land-cover type and biomass class, we will augment available
 training data from ground samples. 
 
-The continous biomass information was grouped in 10 categories:
+The continous biomass variable values were grouped in 10 classes each of size 50
+Mg/ha to provide a stratified sampling that represent evenly different biomass
+profiles. A total of **260'000 samples** are used for training. 
 
-??2000 samples per land cover category and biomass  for a total of 26000 samples 
+5-fold cross-validation on training data (Metrics computed for combined holdout predictions) provided the following performance metrics 
+for biomass (Mg/ha):
 
-### Problems and solutions
+MSE:  | 1372
+RMSE: | 37.1
+MAE:  | 24.7
 
-#### Data size
+### Variable importance
+
+The plots below are variable importance from the random forest and the gradient boosting methods of the ensamble pf machine learning methods.
+
+
+<img id="id5" src="man/images/variable_importance.png" style="width:700px;" />  
+
+
+
+## Testing AI
+
+Testing on an independent set of 140'000 points, sampled just like the training
+points (stratified the same way), provided the following performance metrics 
+for biomass (Mg/ha):
+
+MSE:  | 1421
+RMSE: | 38.7
+MAE:  | 25.6
+
+
+<img  id="id2" src="man/images/performance.png" style="width:500px;" />  
+<label > </label>
+
+
+
+## RESULTS
+
+<a href="output/biomassFromML.tif"  >DOWNLOAD Biomass MAP from AI Model</a>
+
+
+<a href="output/biomassFromCEDA.tif"  >DOWNLOAD Biomass MAP from ESA Climate (CEDA)</a>
+
+
+<img  id="id8" src="man/images/compare.jpg" style="width:800px;" />  
+ 
+<img  id="id9" src="man/images/compareAI.jpg" style="width:800px;" />  
+ 
+<img  id="id99" src="man/images/diff.jpg" style="width:800px;" />  
+
+<img  id="id7" src="man/images/DifferenceDistribution.png" style="width:500px;" /> 
+
+
+
+## Problems and solutions
+
+### Data size
 
 Maximum size of data tables in R is about 2 billion elements. 
 A 100 m resolution raster of Western Europe (Spain + Portugal) as in figure below, has 
-about 26 million cells with biomass above 0 Mg/ha. 
+about 48 million cells with biomass above 0 Mg/ha. 
+R has a limit of vector size, therefore to avoid this and to 
+make full use of parallel processing, we divided in chunks of 
+10 million cells for the prediction step. 
  
-<img src="man/images/figure1.jpg" style="width:100%" />  
-<label >Figure 1 - Bioclimatic variable Annual Precipitation</label>
-
-This allow to have a balanced representation of the different cover classes 
-and of different biomass scenarios.
-
-The results from final testing on independent data shows ....
 
