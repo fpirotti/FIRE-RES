@@ -7,3 +7,4 @@
 #download.file("https://www.cirgeo.unipd.it/archivio/shared/R/FIRE-RES/data-raw/features_100m.tif", destfile = "data-raw/features_100m.tif")
 #download.file("https://www.cirgeo.unipd.it/archivio/shared/R/FIRE-RES/data-raw/training.csv", destfile = "data-raw/training.csv" )
 #download.file("https://www.cirgeo.unipd.it/archivio/shared/R/FIRE-RES/data-raw/testing.csv", destfile = "data-raw/testing.csv" )
+#download.file("https://www.cirgeo.unipd.it/archivio/shared/R/FIRE-RES/data-raw/testing2.csv", destfile = "data-raw/testing.csv" )
