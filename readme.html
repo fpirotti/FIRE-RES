@@ -246,7 +246,8 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Biomass estimation for FIRE-RES WP5.2??</h1>
+<h1 class="title toc-ignore">Biomass estimation for FIRE-RES
+WP5.2??</h1>
 <h4 class="author">Francesco Pirotti, Erico Kutchartt</h4>
 <h4 class="date">26/7/2022</h4>
 
@@ -293,7 +294,11 @@ div.tocify {
 <div id="dependent-variable" class="section level3">
 <h3>Dependent variable:</h3>
 <ul>
-<li><a href="https://data.ceda.ac.uk/neodc/esacci/biomass/data/agb/maps/v3.0">Above Ground Biomass</a>. We used as proxy the biomass from ESA Biomass Climate Change Initiative (Biomass_cci): Global datasets of forest above-ground biomass for the years v3
+<li><a
+href="https://data.ceda.ac.uk/neodc/esacci/biomass/data/agb/maps/v3.0">Above
+Ground Biomass</a>. We used as proxy the biomass from ESA Biomass
+Climate Change Initiative (Biomass_cci): Global datasets of forest
+above-ground biomass for the years v3
 <ul>
 <li>Year: 2018</li>
 <li>Resolution: ≈100 m (actually in degrees so depends on latitude)</li>
@@ -307,10 +312,17 @@ div.tocify {
 </div>
 <div id="independent-variables" class="section level3">
 <h3>Independent variables:</h3>
-<p>Also referred to as “features” or “descriptors”, these are variables that are likely to be correlated, and thus help to predict, the biomass in a specific location.</p>
-<p>In general obvious variables such as forest canopy cover fraction and tree height values are used, but also more indirect variables such as climatic variables, height above sea level, forest types etc… are used in the machine learning predictive algorithm.</p>
+<p>Also referred to as “features” or “descriptors”, these are variables
+that are likely to be correlated, and thus help to predict, the biomass
+in a specific location.</p>
+<p>In general obvious variables such as forest canopy cover fraction and
+tree height values are used, but also more indirect variables such as
+climatic variables, height above sea level, forest types etc… are used
+in the machine learning predictive algorithm.</p>
 <ul>
-<li><a href="https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_Landcover_100m_Proba-V-C3_Global" target="_blank">COPERNICUS_Landcover_100m_Proba-V-C3_Global</a>
+<li><a
+href="https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_Landcover_100m_Proba-V-C3_Global"
+target="_blank">COPERNICUS_Landcover_100m_Proba-V-C3_Global</a>
 <ul>
 <li>Year: 2019</li>
 <li>Resolution:100 m</li>
@@ -321,17 +333,26 @@ div.tocify {
 <li><strong>forest canopy cover %</strong></li>
 </ul></li>
 </ul></li>
-<li><a href="https://nlang.users.earthengine.app/view/global-canopy-height-2020?fbclid=IwAR1gc3R5uGr04PswUVzWekvykmcdJRRpL7kzYXcAxzdYZl1U5_1wJvPl2YM" target="_blank">Canopy height from ETH</a>
+<li><a
+href="https://nlang.users.earthengine.app/view/global-canopy-height-2020?fbclid=IwAR1gc3R5uGr04PswUVzWekvykmcdJRRpL7kzYXcAxzdYZl1U5_1wJvPl2YM"
+target="_blank">Canopy height from ETH</a>
 <ul>
 <li>Year: 2020</li>
 <li>Resolution: 10 m</li>
 <li>Layers were aggregated to 100 m:
 <ul>
 <li>Average - <strong>canopy height_mean</strong></li>
-<li>Sum - <strong>canopy height_sum</strong> Lang, N., Jetz, W., Schindler, K., &amp; Wegner, J. D. (2022). A high-resolution canopy height model of the Earth. arXiv preprint arXiv:2204.08322</li>
+<li>Sum - <strong>canopy height_sum</strong> Lang, N., Jetz, W.,
+Schindler, K., &amp; Wegner, J. D. (2022). A high-resolution canopy
+height model of the Earth. arXiv preprint arXiv:2204.08322</li>
 </ul></li>
 </ul></li>
-<li><a href="https://developers.google.com/earth-engine/datasets/catalog/VITO_PROBAV_C1_S1_TOC_100M">Annual NDVI Composite</a> The 100 m resolution <a href="https://proba-v.vgt.vito.be/sites/proba-v.vgt.vito.be/files/products_user_manual.pdf">More info</a> NDVI is well-known to be related to biomass values, even if the prediction efficiency decreases at high biomass values.
+<li><a
+href="https://developers.google.com/earth-engine/datasets/catalog/VITO_PROBAV_C1_S1_TOC_100M">Annual
+NDVI Composite</a> The 100 m resolution <a
+href="https://proba-v.vgt.vito.be/sites/proba-v.vgt.vito.be/files/products_user_manual.pdf">More
+info</a> NDVI is well-known to be related to biomass values, even if the
+prediction efficiency decreases at high biomass values.
 <ul>
 <li>Year: 2020</li>
 <li>Every 5 days</li>
@@ -340,7 +361,10 @@ div.tocify {
 <li>Temporal composite - <strong>ndvi</strong></li>
 </ul></li>
 </ul></li>
-<li><a href="https://developers.google.com/earth-engine/datasets/catalog/JAXA_ALOS_PALSAR_YEARLY_SAR">ALOS PALSAR2</a> SAR backscatter is related to the amount of vegetation available in the area.
+<li><a
+href="https://developers.google.com/earth-engine/datasets/catalog/JAXA_ALOS_PALSAR_YEARLY_SAR">ALOS
+PALSAR2</a> SAR backscatter is related to the amount of vegetation
+available in the area.
 <ul>
 <li>Year: 2020</li>
 <li>Resolution: 25 m</li>
@@ -349,7 +373,9 @@ div.tocify {
 <li>Average HV polarization - <strong>HV</strong></li>
 </ul></li>
 </ul></li>
-<li><a href="https://developers.google.com/earth-engine/datasets/catalog/CGIAR_SRTM90_V4?hl=en" target="_blank">SRTM Elevation Grid</a>
+<li><a
+href="https://developers.google.com/earth-engine/datasets/catalog/CGIAR_SRTM90_V4?hl=en"
+target="_blank">SRTM Elevation Grid</a>
 <ul>
 <li>Year: 2000</li>
 <li>Resolution: 90 m</li>
@@ -358,31 +384,49 @@ div.tocify {
 <li><strong>elevation</strong></li>
 </ul></li>
 </ul></li>
-<li><a href="developers.google.com/earth-engine/datasets/catalog/WORLDCLIM_V1_BIO" target="_blank">Bioclimatic variables from WorldClim (Berkeley University)</a>
+<li><a
+href="developers.google.com/earth-engine/datasets/catalog/WORLDCLIM_V1_BIO"
+target="_blank">Bioclimatic variables from WorldClim (Berkeley
+University)</a>
 <ul>
 <li>Year: 1960-1991</li>
 <li>Resolution: 1000 m</li>
 <li>Layers:
 <ul>
 <li><strong>bio01</strong> Annual mean temperature -290 320 °C 0.1</li>
-<li><strong>bio02</strong> Mean diurnal range (mean of monthly (max temp - min temp)) 9 214 °C 0.1</li>
+<li><strong>bio02</strong> Mean diurnal range (mean of monthly (max temp
+- min temp)) 9 214 °C 0.1</li>
 <li><strong>bio03</strong> Isothermality (bio02/bio07) 7 96 % 0</li>
-<li><strong>bio04</strong> Temperature seasonality (Standard deviation * 100) 62 22721 °C 0.01</li>
-<li><strong>bio05</strong> Max temperature of warmest month -96 490 °C 0.1</li>
-<li><strong>bio06</strong> Min temperature of coldest month -573 258 °C 0.1</li>
-<li><strong>bio07</strong> Temperature annual range (bio05-bio06) 53 725 °C 0.1</li>
-<li><strong>bio08</strong> Mean temperature of wettest quarter -285 378 °C 0.1</li>
-<li><strong>bio09</strong> Mean temperature of driest quarter -521 366 °C 0.1</li>
-<li><strong>bio10</strong> Mean temperature of warmest quarter -143 383 °C 0.1</li>
-<li><strong>bio11</strong> Mean temperature of coldest quarter -521 289 °C 0.1</li>
+<li><strong>bio04</strong> Temperature seasonality (Standard deviation *
+100) 62 22721 °C 0.01</li>
+<li><strong>bio05</strong> Max temperature of warmest month -96 490 °C
+0.1</li>
+<li><strong>bio06</strong> Min temperature of coldest month -573 258 °C
+0.1</li>
+<li><strong>bio07</strong> Temperature annual range (bio05-bio06) 53 725
+°C 0.1</li>
+<li><strong>bio08</strong> Mean temperature of wettest quarter -285 378
+°C 0.1</li>
+<li><strong>bio09</strong> Mean temperature of driest quarter -521 366
+°C 0.1</li>
+<li><strong>bio10</strong> Mean temperature of warmest quarter -143 383
+°C 0.1</li>
+<li><strong>bio11</strong> Mean temperature of coldest quarter -521 289
+°C 0.1</li>
 <li><strong>bio12</strong> Annual precipitation 0 11401 mm 0</li>
-<li><strong>bio13</strong> Precipitation of wettest month 0 2949 mm 0</li>
+<li><strong>bio13</strong> Precipitation of wettest month 0 2949 mm
+0</li>
 <li><strong>bio14</strong> Precipitation of driest month 0 752 mm 0</li>
-<li><strong>bio15</strong> Precipitation seasonality 0 265 Coefficient of Variation 0</li>
-<li><strong>bio16</strong> Precipitation of wettest quarter 0 8019 mm 0</li>
-<li><strong>bio17</strong> Precipitation of driest quarter 0 2495 mm 0</li>
-<li><strong>bio18</strong> Precipitation of warmest quarter 0 6090 mm 0</li>
-<li><strong>bio19</strong> Precipitation of coldest quarter 0 5162 mm 0</li>
+<li><strong>bio15</strong> Precipitation seasonality 0 265 Coefficient
+of Variation 0</li>
+<li><strong>bio16</strong> Precipitation of wettest quarter 0 8019 mm
+0</li>
+<li><strong>bio17</strong> Precipitation of driest quarter 0 2495 mm
+0</li>
+<li><strong>bio18</strong> Precipitation of warmest quarter 0 6090 mm
+0</li>
+<li><strong>bio19</strong> Precipitation of coldest quarter 0 5162 mm
+0</li>
 </ul></li>
 </ul></li>
 </ul>
@@ -390,11 +434,15 @@ div.tocify {
 </div>
 <div id="data-pre-processing" class="section level2">
 <h2>Data pre-processing</h2>
-<p>Data collection and preparation was carried out in <strong>Google Earth Engine</strong>.</p>
-<p><a href="https://code.earthengine.google.com/?scriptPath=users%2Fcirgeo%2Fpirotti%3AFIRE-RES%2Ffire-res-biomass_ML" target="_blank">Link to GEE code</a></p>
+<p>Data collection and preparation was carried out in <strong>Google
+Earth Engine</strong>.</p>
+<p><a
+href="https://code.earthengine.google.com/?scriptPath=users%2Fcirgeo%2Fpirotti%3AFIRE-RES%2Ffire-res-biomass_ML"
+target="_blank">Link to GEE code</a></p>
 <div id="masking-non-burnable-areas" class="section level3">
 <h3>Masking non-burnable areas</h3>
-<p>First we mask the LULC map removing non-burnable areas as per Scott and Burgan NB(1,2,3) etc…</p>
+<p>First we mask the LULC map removing non-burnable areas as per Scott
+and Burgan NB(1,2,3) etc…</p>
 <pre class="javascript"><code>var lulc_mask = LULC.neq(0)
                     .multiply(LULC.neq(40)) // agriculture (NB3)
                     .multiply(LULC.neq(50))  // urban (NB1)
@@ -402,37 +450,64 @@ div.tocify {
                     .multiply(LULC.neq(80))  // Permanent water lakes (NB8)
                     .multiply(LULC.neq(100)) // MOSS AND LICKEN (NB9??)
                     .multiply(LULC.neq(200)) // OCEAN  (NB8)</code></pre>
-<p>All data were reprojected to geographic WGS84 (EPSG:4326) coordinates with ≈100 m</p>
-<p>≈220’000 sample points were taken from the area by stratified sampling using, as strata, the 13 LULC classes and biomass classes at 10 Mg/ha intervals, for a total of 48 biomass classes. This allowed for a balanced representation of different land use (shrub to thick forest) and of estimated biomass at pixel level.</p>
+<p>All data were reprojected to geographic WGS84 (EPSG:4326) coordinates
+with ≈100 m</p>
+<p>≈220’000 sample points were taken from the area by stratified
+sampling using, as strata, the 13 LULC classes and biomass classes at 10
+Mg/ha intervals, for a total of 48 biomass classes. This allowed for a
+balanced representation of different land use (shrub to thick forest)
+and of estimated biomass at pixel level.</p>
 </div>
 </div>
 <div id="training-ai" class="section level2">
 <h2>Training AI</h2>
-<p>Biomass ground truth data are not easily reached due to the very different sampling protocols and many countries not providing the information as open data.</p>
-<p>Some dedicated EU projects, such as GLOBIOMASS, were funded with the main goal to create biomass maps. We therefore decided to use these maps for training an ensemble of machine learning methods using as descriptors the data-rich environment from the above-listed data, <strong>for a total of 27 variables as features</strong>.</p>
-<p>The plot below shows the relation between the variables and the biomass.</p>
+<p>Biomass ground truth data are not easily reached due to the very
+different sampling protocols and many countries not providing the
+information as open data.</p>
+<p>Some dedicated EU projects, such as GLOBIOMASS, were funded with the
+main goal to create biomass maps. We therefore decided to use these maps
+for training an ensemble of machine learning methods using as
+descriptors the data-rich environment from the above-listed data,
+<strong>for a total of 27 variables as features</strong>.</p>
+<p>The plot below shows the relation between the variables and the
+biomass.</p>
 <p><img id="id1" src="man/images/variables.jpg" style="width:500px;" /></p>
-<p>The rationale behind this decision is that the dependent variable, i.e. the AGB, is mapped with a well-documented uncertainty via the 2018 CEDA biomass map. By collecting a large number of samples from the area with stratified sampling that accounts for land-cover type and biomass class, we will augment available training data from ground samples.</p>
-<p>The continous biomass variable values were grouped in 10 classes each of size 50 Mg/ha to provide a stratified sampling that represent evenly different biomass profiles. A total of <strong>260’000 samples</strong> are used for training.</p>
-<p>5-fold cross-validation on training data (Metrics computed for combined holdout predictions) provided the following performance metrics for biomass (Mg/ha):</p>
+<p>The rationale behind this decision is that the dependent variable,
+i.e. the AGB, is mapped with a well-documented uncertainty via the 2018
+CEDA biomass map. By collecting a large number of samples from the area
+with stratified sampling that accounts for land-cover type and biomass
+class, we will augment available training data from ground samples.</p>
+<p>The continous biomass variable values were grouped in 10 classes each
+of size 50 Mg/ha to provide a stratified sampling that represent evenly
+different biomass profiles. A total of <strong>260’000 samples</strong>
+are used for training.</p>
+<p>5-fold cross-validation on training data (Metrics computed for
+combined holdout predictions) provided the following performance metrics
+for biomass (Mg/ha):</p>
 <p>MSE: | 1372 RMSE: | 37.1 MAE: | 24.7</p>
 <div id="variable-importance" class="section level3">
 <h3>Variable importance</h3>
-<p>The plots below are variable importance from the random forest and the gradient boosting methods of the ensamble pf machine learning methods.</p>
+<p>The plots below are variable importance from the random forest and
+the gradient boosting methods of the ensamble pf machine learning
+methods.</p>
 <p><img id="id5" src="man/images/variable_importance.png" style="width:700px;" /></p>
 </div>
 </div>
 <div id="testing-ai" class="section level2">
 <h2>Testing AI</h2>
-<p>Testing on an independent set of 140’000 points, sampled just like the training points (stratified the same way), provided the following performance metrics for biomass (Mg/ha):</p>
+<p>Testing on an independent set of 140’000 points, sampled just like
+the training points (stratified the same way), provided the following
+performance metrics for biomass (Mg/ha):</p>
 <p>MSE: | 1421 RMSE: | 38.7 MAE: | 25.6</p>
 <p><img  id="id2" src="man/images/performance.png" style="width:500px;" /><br />
 <label > </label></p>
 </div>
 <div id="results" class="section level2">
 <h2>RESULTS</h2>
-<p><a href="output/biomassFromML.tif"  >DOWNLOAD Biomass MAP from AI Model</a></p>
-<p><a href="output/biomassFromCEDA.tif"  >DOWNLOAD Biomass MAP from ESA Climate (CEDA)</a></p>
+<p><a href="output/biomassFromML.tif"  >DOWNLOAD Biomass MAP from AI
+Model</a></p>
+<p><a href="output/biomassFromCEDA.tif"  >DOWNLOAD Biomass MAP from ESA
+Climate (CEDA)</a></p>
 <p><img  id="id8" src="man/images/compare.jpg" style="width:800px;" /></p>
 <p><img  id="id9" src="man/images/compareAI.jpg" style="width:800px;" /></p>
 <p><img  id="id99" src="man/images/diff.jpg" style="width:800px;" /></p>
@@ -442,7 +517,12 @@ div.tocify {
 <h2>Problems and solutions</h2>
 <div id="data-size" class="section level3">
 <h3>Data size</h3>
-<p>Maximum size of data tables in R is about 2 billion elements. A 100 m resolution raster of Western Europe (Spain + Portugal) as in figure below, has about 48 million cells with biomass above 0 Mg/ha. R has a limit of vector size, therefore to avoid this and to make full use of parallel processing, we divided in chunks of 10 million cells for the prediction step.</p>
+<p>Maximum size of data tables in R is about 2 billion elements. A 100 m
+resolution raster of Western Europe (Spain + Portugal) as in figure
+below, has about 48 million cells with biomass above 0 Mg/ha. R has a
+limit of vector size, therefore to avoid this and to make full use of
+parallel processing, we divided in chunks of 10 million cells for the
+prediction step.</p>
 </div>
 </div>
 
