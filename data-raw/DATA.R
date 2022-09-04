@@ -5,4 +5,5 @@
 ##
 #download.file("https://www.cirgeo.unipd.it/archivio/shared/R/FIRE-RES/data-raw/features_bioclim.tif", destfile = "data-raw/features_bioclim.tif")
 #download.file("https://www.cirgeo.unipd.it/archivio/shared/R/FIRE-RES/data-raw/features_100m.tif", destfile = "data-raw/features_100m.tif")
-#download.file("https://www.cirgeo.unipd.it/archivio/shared/R/FIRE-RES/data-raw/samples4biomassML.csv", destfile = "data-raw/samples4biomassML.csv" )
+#download.file("https://www.cirgeo.unipd.it/archivio/shared/R/FIRE-RES/data-raw/training.csv", destfile = "data-raw/training.csv" )
+#download.file("https://www.cirgeo.unipd.it/archivio/shared/R/FIRE-RES/data-raw/testing.csv", destfile = "data-raw/testing.csv" )

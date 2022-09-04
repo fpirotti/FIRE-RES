@@ -26,7 +26,7 @@ Francesco Pirotti, Erico Kutchartt
          $(function() {
              $("img").click(function(e) {  
              if( tmpwidth != 0 ){   
-                $(this).width($(this).width()/2);
+                $(this).width(tmpwidth);
                 tmpwidth = 0; 
              } else{
                 tmpwidth = $(this).width();
@@ -67,14 +67,18 @@ tree height values are used, but also more indirect variables such as
 climatic variables, height above sea level, forest types etc… are used
 in the machine learning predictive algorithm.
 
--   <a href="https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_Landcover_100m_Proba-V-C3_Global" target="_blank">COPERNICUS_Landcover_100m_Proba-V-C3_Global</a>
+-   <a
+    href="https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_Landcover_100m_Proba-V-C3_Global"
+    target="_blank">COPERNICUS_Landcover_100m_Proba-V-C3_Global</a>
     -   Year: 2019
     -   Resolution:100 m
     -   Layers:
         -   **land cover category**
         -   **forest type**
         -   **forest canopy cover %**
--   <a href="https://nlang.users.earthengine.app/view/global-canopy-height-2020?fbclid=IwAR1gc3R5uGr04PswUVzWekvykmcdJRRpL7kzYXcAxzdYZl1U5_1wJvPl2YM" target="_blank">Canopy height from ETH</a>
+-   <a
+    href="https://nlang.users.earthengine.app/view/global-canopy-height-2020?fbclid=IwAR1gc3R5uGr04PswUVzWekvykmcdJRRpL7kzYXcAxzdYZl1U5_1wJvPl2YM"
+    target="_blank">Canopy height from ETH</a>
     -   Year: 2020
     -   Resolution: 10 m
     -   Layers were aggregated to 100 m:
@@ -100,12 +104,17 @@ in the machine learning predictive algorithm.
     -   Resolution: 25 m
     -   Layers were aggregated to 100 m:
         -   Average HV polarization - **HV**
--   <a href="https://developers.google.com/earth-engine/datasets/catalog/CGIAR_SRTM90_V4?hl=en" target="_blank">SRTM Elevation Grid</a>
+-   <a
+    href="https://developers.google.com/earth-engine/datasets/catalog/CGIAR_SRTM90_V4?hl=en"
+    target="_blank">SRTM Elevation Grid</a>
     -   Year: 2000
     -   Resolution: 90 m
     -   Layers:
         -   **elevation**
--   <a href="developers.google.com/earth-engine/datasets/catalog/WORLDCLIM_V1_BIO" target="_blank">Bioclimatic variables from WorldClim (Berkeley University)</a>
+-   <a
+    href="developers.google.com/earth-engine/datasets/catalog/WORLDCLIM_V1_BIO"
+    target="_blank">Bioclimatic variables from WorldClim (Berkeley
+    University)</a>
     -   Year: 1960-1991
     -   Resolution: 1000 m
     -   Layers:
@@ -113,8 +122,8 @@ in the machine learning predictive algorithm.
         -   **bio02** Mean diurnal range (mean of monthly (max temp -
             min temp)) 9 214 °C 0.1
         -   **bio03** Isothermality (bio02/bio07) 7 96 % 0
-        -   **bio04** Temperature seasonality (Standard deviation \*
-            100) 62 22721 °C 0.01
+        -   **bio04** Temperature seasonality (Standard deviation
+            \* 100) 62 22721 °C 0.01
         -   **bio05** Max temperature of warmest month -96 490 °C 0.1
         -   **bio06** Min temperature of coldest month -573 258 °C 0.1
         -   **bio07** Temperature annual range (bio05-bio06) 53 725 °C
@@ -141,7 +150,9 @@ in the machine learning predictive algorithm.
 Data collection and preparation was carried out in **Google Earth
 Engine**.
 
-<a href="https://code.earthengine.google.com/?scriptPath=users%2Fcirgeo%2Fpirotti%3AFIRE-RES%2Ffire-res-biomass_ML" target="_blank">Link to GEE code</a>
+<a
+href="https://code.earthengine.google.com/?scriptPath=users%2Fcirgeo%2Fpirotti%3AFIRE-RES%2Ffire-res-biomass_ML"
+target="_blank">Link to GEE code</a>
 
 ### Masking non-burnable areas
 
@@ -205,7 +216,7 @@ MSE: \| 1372 RMSE: \| 37.1 MAE: \| 24.7
 The plots below are variable importance from the random forest and the
 gradient boosting methods of the ensamble pf machine learning methods.
 
-<img id="id5" src="man/images/variable_importance.png" style="width:500px;" />
+<img id="id5" src="man/images/variable_importance.png" style="width:700px;" />
 
 ## Testing AI
 
@@ -218,18 +229,29 @@ MSE: \| 1421 RMSE: \| 38.7 MAE: \| 25.6
 <img  id="id2" src="man/images/performance.png" style="width:500px;" />  
 <label > </label>
 
+## RESULTS
+
+<a href="output/biomassFromML.tif"  >DOWNLOAD Biomass MAP from AI
+Model</a>
+
+<a href="output/biomassFromCEDA.tif"  >DOWNLOAD Biomass MAP from ESA
+Climate (CEDA)</a>
+
+<img  id="id8" src="man/images/compare.jpg" style="width:800px;" />
+
+<img  id="id9" src="man/images/compareAI.jpg" style="width:800px;" />
+
+<img  id="id99" src="man/images/diff.jpg" style="width:800px;" />
+
+<img  id="id7" src="man/images/DifferenceDistribution.png" style="width:500px;" />
+
 ## Problems and solutions
 
 ### Data size
 
 Maximum size of data tables in R is about 2 billion elements. A 100 m
 resolution raster of Western Europe (Spain + Portugal) as in figure
-below, has about 26 million cells with biomass above 0 Mg/ha.
-
-<img  id="id3" src="man/images/figure1.jpg" style="width:500px" />  
-<label >Figure 3 - Bioclimatic variable Annual Precipitation</label>
-
-This allow to have a balanced representation of the different cover
-classes and of different biomass scenarios.
-
-The results from final testing on independent data shows ….
+below, has about 48 million cells with biomass above 0 Mg/ha. R has a
+limit of vector size, therefore to avoid this and to make full use of
+parallel processing, we divided in chunks of 10 million cells for the
+prediction step.
