@@ -7,7 +7,10 @@ library(h2o)
 
 ## data processing ----
 
-if(!file.exists("data-raw/sample.data.zip")){
+if(!file.exists("data-raw/testing.csv") || !file.exists("data-raw/training.csv") ||
+   !file.exists("data-raw/training2.csv") ||
+   !file.exists("data-raw/features_100m.tif") ||
+   !file.exists("data-raw/features_bioclim.tif")  ){
   stop("Please read/run DATA.R to download missing data!")
 }
 
