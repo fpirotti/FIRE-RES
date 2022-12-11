@@ -1,9 +1,8 @@
 ---
-title: "Biomass estimation for FIRE-RES WP5.2??"
+title: "Biomass estimation for FIRE-RES WP5.6"
 author: "Francesco Pirotti, Erico Kutchartt"
-date: "26/7/2022"
+date: "15/9/2022"
 output:
-  github_document: default
   html_document:
     toc: true
     self_contained: no
@@ -11,6 +10,7 @@ output:
     toc_float:
       collapsed: false
       smooth_scroll: false
+  github_document: default
 ---
 
  
@@ -53,7 +53,7 @@ knitr::opts_chunk$set(echo = TRUE)
   });
 </script>
 
-xxxx description (Erico?)
+
 
 ## Data
 
@@ -81,7 +81,6 @@ variables, height above sea level, forest types etc... are used in the
 machine learning predictive algorithm. 
 
 
-
  - [COPERNICUS_Landcover_100m_Proba-V-C3_Global](https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_Landcover_100m_Proba-V-C3_Global){target=_blank}
     - Year: 2019
     - Resolution:100 m
@@ -89,7 +88,21 @@ machine learning predictive algorithm.
       - **land cover category**
       - **forest type**
       - **forest canopy cover %**
-  
+    - Note: updated to 2020 using ESA WorldCover (see next point)
+
+ - [ESA WorldCover](https://esa-worldcover.org/en){target=_blank}
+    - Year: 2020
+    - Resolution:10 m
+    - Layers: 
+      - **land cover category**
+        - forest (10)
+        - shrub (20)
+        - grassland (30)
+    
+    Resampled to 100 m using as aggregate the fraction of the three covers. 
+    So from this we have three more layers, tree fraction, shrub fraction and 
+    grass fraction in the 100 m pixel.
+      
  - [Canopy height from ETH](https://nlang.users.earthengine.app/view/global-canopy-height-2020?fbclid=IwAR1gc3R5uGr04PswUVzWekvykmcdJRRpL7kzYXcAxzdYZl1U5_1wJvPl2YM){target=_blank}
     - Year: 2020
     - Resolution: 10 m
