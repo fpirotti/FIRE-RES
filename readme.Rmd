@@ -55,6 +55,14 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 
+## Rationale
+
+Biomass at European and Global scale has been estimated with several approaches.
+
+XXX XXXX
+
+In this approach we 
+
 ## Data
 
 The following data sources are used:
@@ -285,3 +293,6 @@ make full use of parallel processing, we divided in chunks of
 10 million cells for the prediction step. 
  
 
+## UPDATES
+
+11 Dec. 2022 - migration of all code to R thanks to "rgee" library.

@@ -3,6 +3,7 @@ library(data.table)
 library(terra)
 library(foreach)
 library(parallel)
+library(h2o)
 ## data processing ----
 
 if(!file.exists("data-raw/testing.csv") ||
