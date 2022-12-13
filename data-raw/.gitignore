@@ -1,3 +1,11 @@
 features_100m.tif
 features_bioclim.tif
 samples4biomassML.csv
+fire_res.qgz
+processing_training_tot.R
+processing.R
+testing.csv
+training.csv
+training2.csv
+processing_validation_plots.R
+allDataEU
