@@ -1,7 +1,7 @@
 Biomass estimation for FIRE-RES WP5.6
 ================
 Francesco Pirotti, Erico Kutchartt
-13 December, 2022
+20 December, 2022
 
 <style>
 .zoomDiv {
@@ -48,46 +48,69 @@ In this approach we
 
 ## Data
 
-The following data sources are used:
+The following data sources are used
 
-### Dependent variables under consideration:
+### Dependent variables
+
+#### Above Ground Biomass
+
+<a
+href="https://data.ceda.ac.uk/neodc/esacci/biomass/data/agb/maps/v3.0"
+target="_blank">LINK TO DATA HERE</a>
+
+We usedthe biomass from ESA Biomass Climate Change Initiative
+(Biomass_cci): Global datasets of forest above-ground biomass for the
+year 1018, version 3
+
+- Year: 2018
+- Resolution: ≈100 m (actually in degrees so depends on latitude)
+- Layers:
+  - **Above ground biomass**
+  - **Above ground biomass standard error**
+
+### Independent variables
+
+#### TREE SPECIES
+
+<a
+href="https://opengeohub.org/datasets/potential-and-realized-distribution-at-30m-for-16-forest-tree-species-in-europe-for-2000-2020/"
+target="_blank">LINK TO DATA HERE</a>.
 
 From <a href="https://opengeohub.org/datasets"
-target="_blank">https://opengeohub.org/datasets</a>.
+target="_blank">https://opengeohub.org/datasets</a>
 
-#### <a
-href="https://opengeohub.org/datasets/potential-and-realized-distribution-at-30m-for-16-forest-tree-species-in-europe-for-2000-2020/"
-target="_blank">TREE SPECIES</a>.
+- Year: 2020
+- Resolution: ≈30 m
+- Layers:
+  - Each species has a potential and realized distribution map
+    - 16 available species
+      - veg_abies_alba_anv_v3
+      - veg_castanea_sativa_anv_v3
+      - veg_corylus_avellana_anv_v3
+      - veg_fagus_sylvatica_anv_v3
+      - veg_olea_europaea_anv_v3
+      - veg_picea_abies_anv_v3
+      - veg_pinus_halepensis_anv_v3
+      - veg_pinus_nigra_anv_v3
+      - veg_pinus_pinea_anv_v3
+      - veg_pinus_sylvestris_anv_v3
+      - veg_prunus_avium_anv_v3
+      - veg_quercus_cerris_anv_v3
+      - veg_quercus_ilex_anv_v3
+      - veg_quercus_robur_anv_v3
+      - veg_quercus_suber_anv_v3
+      - veg_salix_caprea_anv_v3
 
--   Year: 2020?
--   Resolution: ≈30 m??
--   Layers:
-    -   **TBD**
+#### LAND USE
 
-#### <a
+<a
 href="https://opengeohub.org/datasets/high-resolution-annual-continental-european-land-use-land-cover-data-since-2000/"
-target="_blank">LAND USE</a>.
+target="_blank">LINK TO DATA HERE</a>.
 
--   Year: 2020?
--   Resolution: ≈30 m (actually in degrees so depends on latitude)
--   Layers:
-    -   **TBD**
-
-### Dependent variables:
-
-#### <a
-href="https://data.ceda.ac.uk/neodc/esacci/biomass/data/agb/maps/v3.0"
-target="_blank">Above Ground Biomass</a>.
-
-We used as proxy the biomass from ESA Biomass Climate Change Initiative
-(Biomass_cci): Global datasets of forest above-ground biomass for the
-years v3
-
--   Year: 2018
--   Resolution: ≈100 m (actually in degrees so depends on latitude)
--   Layers:
-    -   **Above ground biomass**
-    -   **Above ground biomass standard error**
+- Year: 2019
+- Resolution: ≈30 m (actually in degrees so depends on latitude)
+- Layers:
+  - **TBD**
 
 ### Independent variables:
 
@@ -100,119 +123,143 @@ tree height values are used, but also more indirect variables such as
 climatic variables, height above sea level, forest types etc… are used
 in the machine learning predictive algorithm.
 
-#### <a
+#### COPERNICUS_Landcover_100m_Proba-V-C3_Global (REMOVED - SEE ESA WORLD COVER BELOW)
+
+<a
 href="https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_Landcover_100m_Proba-V-C3_Global"
-target="_blank">COPERNICUS_Landcover_100m_Proba-V-C3_Global</a>
+target="_blank">LINK TO DATA HERE</a>
 
--   Year: 2019
--   Resolution:100 m
--   Layers:
-    -   **land cover category**
-    -   **forest type**
-    -   **forest canopy cover %**
--   Note: updated to 2020 using ESA WorldCover (see next point)
+- Year: 2019
+- Resolution:100 m
+- Layers:
+  - **land cover category**
+  - **forest type**
+  - **forest canopy cover %**
+- Note: updated to 2020 using ESA WorldCover (see next point)
 
-#### <a
+#### ESA WorldCover
+
+<a
 href="https://developers.google.com/earth-engine/datasets/catalog/ESA_WorldCover_v100#bands"
 target="_blank">ESA WorldCover</a>
 
 <a href="https://esa-worldcover.org/en" target="_blank">See also website
 of ESA</a>
 
--   Year: 2020
--   Resolution:10 m
--   Layers:
-    -   **land cover category**
-        -   forest (10)
-        -   shrub (20)
-        -   grassland (30)
-        -   …
+- Year: 2020
+- Resolution:10 m
+- Layers:
+  - **land cover category**
+    - forest (10)
+    - shrub (20)
+    - grassland (30)
+    - …
 
 Resampled to 100 m using as aggregate the fraction of the three covers.
 So from this we have three more layers, tree fraction, shrub fraction
 and grass fraction in the 100 m pixel.
 
-#### <a
-href="https://nlang.users.earthengine.app/view/global-canopy-height-2020?fbclid=IwAR1gc3R5uGr04PswUVzWekvykmcdJRRpL7kzYXcAxzdYZl1U5_1wJvPl2YM"
-target="_blank">Canopy height from ETH</a>
+#### Canopy height from ETH
 
--   Year: 2020
--   Resolution: 10 m
--   Layers were **aggregated** to 100 m:
-    -   Average - **canopy height_mean**
-    -   Sum - **canopy height_sum**
+<a
+href="https://nlang.users.earthengine.app/view/global-canopy-height-2020?fbclid=IwAR1gc3R5uGr04PswUVzWekvykmcdJRRpL7kzYXcAxzdYZl1U5_1wJvPl2YM"
+target="_blank">LINK TO DATA HERE</a>
+
+- Year: 2020
+- Resolution: 10 m
+- Layers were **aggregated** to 100 m:
+  - Average - **canopy height_mean**
+  - Sum - **canopy height_sum**
 
 Lang, N., Jetz, W., Schindler, K., & Wegner, J. D. (2022). A
 high-resolution canopy height model of the Earth. arXiv preprint
 arXiv:2204.08322
 
-#### [Annual NDVI Composite](https://developers.google.com/earth-engine/datasets/catalog/VITO_PROBAV_C1_S1_TOC_100M)
+#### Sentinel-2 Annual 2020 NDVI Composite
 
-The 100 m resolution [More
+[LINK TO DATA
+HERE](https://developers.google.com/earth-engine/datasets/catalog/VITO_PROBAV_C1_S1_TOC_100M)
+
+[More
 info](https://proba-v.vgt.vito.be/sites/proba-v.vgt.vito.be/files/products_user_manual.pdf)
 
 NDVI is well-known to be related to biomass values, even if the
-prediction efficiency decreases at high biomass values.
+prediction efficiency decreases at higher biomass values.
 
--   Year: 2020
--   Every 5 days
--   Resolution: 100 m
-    -   Temporal composite - **ndvi**
+- Year: 2020
+- Composite of cloudless imagery with MAX NDVI value
+- Resolution: 100 m
+  - Temporal composite - **ndvi**
 
-#### [ALOS PALSAR2](https://developers.google.com/earth-engine/datasets/catalog/JAXA_ALOS_PALSAR_YEARLY_SAR)
+#### ALOS PALSAR2 RADAR
 
-SAR backscatter is related to the amount of vegetation available in the
-area. - Year: 2020 - Resolution: 25 m - Layers were aggregated to 100
-m: - Average HV polarization - **HV**
+[LINK TO DATA
+HERE](https://developers.google.com/earth-engine/datasets/catalog/JAXA_ALOS_PALSAR_YEARLY_SAR)
 
-#### <a
+SAR backscatter, corrected by incidence angle, is related to the amount
+of vegetation available in the illuminated area.
+
+- Year: 2020
+- Resolution: 25 m
+- Layers were aggregated to 100 m:
+  - Average HV polarization - **HV**
+
+#### SRTM Elevation Grid
+
+<a
 href="https://developers.google.com/earth-engine/datasets/catalog/CGIAR_SRTM90_V4?hl=en"
-target="_blank">SRTM Elevation Grid</a>
+target="_blank">LINK TO DATA HERE</a>
 
--   Year: 2000
--   Resolution: 90 m
--   Layers:
-    -   **elevation**
+- Year: 2000
+- Resolution: 90 m
+- Layers:
+  - **elevation**
 
-#### <a
+#### Bioclimatic variables
+
+<a
 href="developers.google.com/earth-engine/datasets/catalog/WORLDCLIM_V1_BIO"
-target="_blank">Bioclimatic variables from WorldClim (Berkeley
+target="_blank">Bioclimatic variables from WorldClim Database (Berkeley
 University)</a>
 
--   Year: 1960-1991
--   Resolution: 1000 m
--   Layers:
-    -   **bio01** Annual mean temperature -290 320 °C 0.1
-    -   **bio02** Mean diurnal range (mean of monthly (max temp - min
-        temp)) 9 214 °C 0.1
-    -   **bio03** Isothermality (bio02/bio07) 7 96 % 0
-    -   **bio04** Temperature seasonality (Standard deviation \* 100) 62
-        22721 °C 0.01
-    -   **bio05** Max temperature of warmest month -96 490 °C 0.1
-    -   **bio06** Min temperature of coldest month -573 258 °C 0.1
-    -   **bio07** Temperature annual range (bio05-bio06) 53 725 °C 0.1
-    -   **bio08** Mean temperature of wettest quarter -285 378 °C 0.1
-    -   **bio09** Mean temperature of driest quarter -521 366 °C 0.1
-    -   **bio10** Mean temperature of warmest quarter -143 383 °C 0.1
-    -   **bio11** Mean temperature of coldest quarter -521 289 °C 0.1
-    -   **bio12** Annual precipitation 0 11401 mm 0
-    -   **bio13** Precipitation of wettest month 0 2949 mm 0
-    -   **bio14** Precipitation of driest month 0 752 mm 0
-    -   **bio15** Precipitation seasonality 0 265 Coefficient of
-        Variation 0
-    -   **bio16** Precipitation of wettest quarter 0 8019 mm 0
-    -   **bio17** Precipitation of driest quarter 0 2495 mm 0
-    -   **bio18** Precipitation of warmest quarter 0 6090 mm 0
-    -   **bio19** Precipitation of coldest quarter 0 5162 mm 0
+- Year: 1960-1991
+- Resolution: 1000 m
+- Layers:
+  - **bio01** Annual mean temperature -290 320 °C 0.1
+  - **bio02** Mean diurnal range (mean of monthly (max temp - min temp))
+    9 214 °C 0.1
+  - **bio03** Isothermality (bio02/bio07) 7 96 % 0
+  - **bio04** Temperature seasonality (Standard deviation \* 100) 62
+    22721 °C 0.01
+  - **bio05** Max temperature of warmest month -96 490 °C 0.1
+  - **bio06** Min temperature of coldest month -573 258 °C 0.1
+  - **bio07** Temperature annual range (bio05-bio06) 53 725 °C 0.1
+  - **bio08** Mean temperature of wettest quarter -285 378 °C 0.1
+  - **bio09** Mean temperature of driest quarter -521 366 °C 0.1
+  - **bio10** Mean temperature of warmest quarter -143 383 °C 0.1
+  - **bio11** Mean temperature of coldest quarter -521 289 °C 0.1
+  - **bio12** Annual precipitation 0 11401 mm 0
+  - **bio13** Precipitation of wettest month 0 2949 mm 0
+  - **bio14** Precipitation of driest month 0 752 mm 0
+  - **bio15** Precipitation seasonality 0 265 Coefficient of Variation 0
+  - **bio16** Precipitation of wettest quarter 0 8019 mm 0
+  - **bio17** Precipitation of driest quarter 0 2495 mm 0
+  - **bio18** Precipitation of warmest quarter 0 6090 mm 0
+  - **bio19** Precipitation of coldest quarter 0 5162 mm 0
 
 ## Data pre-processing
 
 Data collection and preparation was carried out in **Google Earth
-Engine**.
+Engine** API called from R rgee library.
 
-<a
-href="https://code.earthengine.google.com/?scriptPath=users%2Fcirgeo%2Fpirotti%3AFIRE-RES%2Ffire-res-biomass_ML"
-target="_blank">Link to GEE code</a>
+### Data Coordinate Reference System harmonization
+
+Global data are usually in geographic coordinate systems
+(CRS=EPSG:4326). Some data in Europe are in EPSG:3035 (Lambertian
+Conical Projection).
+
+To harmonize between these two CRS the nearest neighbour resampling was
+applied to convert
 
 ### Masking non-burnable areas
 
@@ -328,4 +375,24 @@ prediction step.
 
 ## UPDATES
 
-11 Dec. 2022 - migration of all code to R thanks to “rgee” library.
+- 11 Dec. 2022 - migration of all code to R thanks to “rgee” library.
+- 14 Dec. 2022 - convert all to CRS 4326 (geographic) with exact
+  alignment to the CEDA Biomass 2018 map \[1\] that is used for
+  training. NB the ETRS89 Lambert Azimuthal Equal Area Coordinate
+  Reference System) \[2\] would allow all cells to be effectively 1 ha
+  (100 m x 100 m), but we decided to keep a global reference frame for
+  future developments outside Europe.
+
+## Bibliography
+
+\[1\] Santoro, M.; Cartus, O. (2019): ESA Biomass Climate Change
+Initiative (Biomass_cci): Global datasets of forest above-ground biomass
+for the year 2017, v1. via Centre for Environmental Data Analysis
+
+\[2\] A. Annoni et al., “Map Projections for Europe”, European
+Commission Joint Research Centre, reference EUR 20120 EN, 2003
+
+\[3\] Spatio-Temporal Asset Catalog for European-wide layers provided by
+Open Environmental Data Cube Europe, co-financed under Grant Agreement
+Connecting Europe Facility (CEF) Telecom project 2018-EU-IA-0095 by the
+European Union.

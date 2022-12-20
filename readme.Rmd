@@ -65,26 +65,59 @@ In this approach we
 
 ## Data
 
-The following data sources are used:
+The following data sources are used 
 
-###  Dependent variables under consideration:
+###  Dependent variables  
 
-From [https://opengeohub.org/datasets](https://opengeohub.org/datasets){target=_blank}. 
+#### Above Ground Biomass
 
+[LINK TO DATA HERE](https://data.ceda.ac.uk/neodc/esacci/biomass/data/agb/maps/v3.0){target=_blank} 
 
-#### [TREE SPECIES](https://opengeohub.org/datasets/potential-and-realized-distribution-at-30m-for-16-forest-tree-species-in-europe-for-2000-2020/){target=_blank}. 
-
-  
-  - Year: 2020?
-  - Resolution: ≈30 m??
+ We usedthe biomass from ESA Biomass Climate Change Initiative (Biomass_cci): Global datasets of forest above-ground biomass for the year 1018, version 3
+ 
+  - Year: 2018
+  - Resolution: ≈100 m (actually in degrees so depends on latitude)
   - Layers: 
-    - **TBD**
+    - **Above ground biomass**
+    - **Above ground biomass standard error**
 
+###  Independent variables  
 
-#### [LAND USE](https://opengeohub.org/datasets/high-resolution-annual-continental-european-land-use-land-cover-data-since-2000/){target=_blank}. 
+#### TREE SPECIES
 
+[LINK TO DATA HERE](https://opengeohub.org/datasets/potential-and-realized-distribution-at-30m-for-16-forest-tree-species-in-europe-for-2000-2020/){target=_blank}. 
+
+From [https://opengeohub.org/datasets](https://opengeohub.org/datasets){target=_blank}
   
-  - Year: 2020?
+  - Year: 2020
+  - Resolution: ≈30 m
+  - Layers: 
+    - Each species has a potential and realized distribution map 
+      - 16 available species
+        - veg_abies_alba_anv_v3
+        - veg_castanea_sativa_anv_v3
+        - veg_corylus_avellana_anv_v3
+        - veg_fagus_sylvatica_anv_v3
+        - veg_olea_europaea_anv_v3
+        - veg_picea_abies_anv_v3
+        - veg_pinus_halepensis_anv_v3
+        - veg_pinus_nigra_anv_v3
+        - veg_pinus_pinea_anv_v3
+        - veg_pinus_sylvestris_anv_v3
+        - veg_prunus_avium_anv_v3
+        - veg_quercus_cerris_anv_v3
+        - veg_quercus_ilex_anv_v3
+        - veg_quercus_robur_anv_v3
+        - veg_quercus_suber_anv_v3
+        - veg_salix_caprea_anv_v3 
+    
+
+
+#### LAND USE
+
+[LINK TO DATA HERE](https://opengeohub.org/datasets/high-resolution-annual-continental-european-land-use-land-cover-data-since-2000/){target=_blank}. 
+  
+  - Year: 2019
   - Resolution: ≈30 m (actually in degrees so depends on latitude)
   - Layers: 
     - **TBD**
@@ -92,18 +125,6 @@ From [https://opengeohub.org/datasets](https://opengeohub.org/datasets){target=_
 
 
 
-
-###  Dependent variables: 
-
-#### [Above Ground Biomass](https://data.ceda.ac.uk/neodc/esacci/biomass/data/agb/maps/v3.0){target=_blank}. 
-
- We used as proxy the biomass from ESA Biomass Climate Change Initiative (Biomass_cci): Global datasets of forest above-ground biomass for the years  v3
- 
-  - Year: 2018
-  - Resolution: ≈100 m (actually in degrees so depends on latitude)
-  - Layers: 
-    - **Above ground biomass**
-    - **Above ground biomass standard error**
 
 ###  Independent variables: 
 
@@ -117,8 +138,9 @@ variables, height above sea level, forest types etc... are used in the
 machine learning predictive algorithm. 
 
 
-#### [COPERNICUS_Landcover_100m_Proba-V-C3_Global](https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_Landcover_100m_Proba-V-C3_Global){target=_blank}
+####  COPERNICUS_Landcover_100m_Proba-V-C3_Global (REMOVED - SEE ESA WORLD COVER BELOW)
 
+[LINK TO DATA HERE](https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_Landcover_100m_Proba-V-C3_Global){target=_blank}
 
   - Year: 2019
   - Resolution:100 m
@@ -128,7 +150,9 @@ machine learning predictive algorithm.
     - **forest canopy cover %**
   - Note: updated to 2020 using ESA WorldCover (see next point)
 
-####  [ESA WorldCover](https://developers.google.com/earth-engine/datasets/catalog/ESA_WorldCover_v100#bands){target=_blank}
+####  ESA WorldCover
+
+[ESA WorldCover](https://developers.google.com/earth-engine/datasets/catalog/ESA_WorldCover_v100#bands){target=_blank}
 
 
  [See also website of ESA](https://esa-worldcover.org/en){target=_blank}
@@ -146,7 +170,9 @@ machine learning predictive algorithm.
   So from this we have three more layers, tree fraction, shrub fraction and 
   grass fraction in the 100 m pixel.
       
-####  [Canopy height from ETH](https://nlang.users.earthengine.app/view/global-canopy-height-2020?fbclid=IwAR1gc3R5uGr04PswUVzWekvykmcdJRRpL7kzYXcAxzdYZl1U5_1wJvPl2YM){target=_blank}
+####  Canopy height from ETH 
+
+[LINK TO DATA HERE](https://nlang.users.earthengine.app/view/global-canopy-height-2020?fbclid=IwAR1gc3R5uGr04PswUVzWekvykmcdJRRpL7kzYXcAxzdYZl1U5_1wJvPl2YM){target=_blank}
 
   - Year: 2020
   - Resolution: 10 m
@@ -157,21 +183,28 @@ machine learning predictive algorithm.
     
   Lang, N., Jetz, W., Schindler, K., & Wegner, J. D. (2022). A high-resolution canopy height model of the Earth. arXiv preprint arXiv:2204.08322
    
-####  [Annual NDVI Composite](https://developers.google.com/earth-engine/datasets/catalog/VITO_PROBAV_C1_S1_TOC_100M)
- The 100 m resolution
+####  Sentinel-2 Annual 2020 NDVI Composite
+
+
+[LINK TO DATA HERE](https://developers.google.com/earth-engine/datasets/catalog/VITO_PROBAV_C1_S1_TOC_100M)
+ 
  [More info](https://proba-v.vgt.vito.be/sites/proba-v.vgt.vito.be/files/products_user_manual.pdf)
  
 NDVI is well-known to be related to biomass values, even if the prediction
-efficiency decreases at high biomass values. 
+efficiency decreases at higher biomass values. 
 
   - Year: 2020
-  - Every 5 days
-  - Resolution: 100 m 
+  - Composite of cloudless imagery with MAX NDVI value
+  - Resolution: 100 m
     - Temporal composite - **ndvi**
 
-####  [ALOS PALSAR2](https://developers.google.com/earth-engine/datasets/catalog/JAXA_ALOS_PALSAR_YEARLY_SAR)
+####  ALOS PALSAR2 RADAR
 
- SAR backscatter is related to the amount of vegetation available in the area. 
+[LINK TO DATA HERE](https://developers.google.com/earth-engine/datasets/catalog/JAXA_ALOS_PALSAR_YEARLY_SAR)
+
+ SAR backscatter, corrected by incidence angle, is related to the 
+ amount of vegetation available in the illuminated area. 
+ 
   - Year: 2020
   - Resolution: 25 m
   - Layers were aggregated to 100 m: 
@@ -179,14 +212,18 @@ efficiency decreases at high biomass values.
 
 
 
-####  [SRTM Elevation Grid](https://developers.google.com/earth-engine/datasets/catalog/CGIAR_SRTM90_V4?hl=en){target=_blank}
+####  SRTM Elevation Grid
+
+[LINK TO DATA HERE](https://developers.google.com/earth-engine/datasets/catalog/CGIAR_SRTM90_V4?hl=en){target=_blank}
 
   - Year: 2000
   - Resolution: 90 m
   - Layers: 
 	- **elevation** 
 		
-####  [Bioclimatic variables from WorldClim (Berkeley University)](developers.google.com/earth-engine/datasets/catalog/WORLDCLIM_V1_BIO){target=_blank}
+####  Bioclimatic variables
+
+[Bioclimatic variables from WorldClim Database (Berkeley University)](developers.google.com/earth-engine/datasets/catalog/WORLDCLIM_V1_BIO){target=_blank}
 
 
 - Year: 1960-1991
@@ -216,11 +253,18 @@ efficiency decreases at high biomass values.
 ## Data pre-processing
 
 
-Data collection and preparation was carried out in **Google Earth Engine**.
+Data collection and preparation was carried out in **Google Earth Engine** API
+called from R rgee library.
+ 
+
+### Data Coordinate Reference System harmonization
+
+Global data are usually in geographic coordinate systems (CRS=EPSG:4326).
+Some data in Europe are in EPSG:3035 (Lambertian Conical Projection).
 
 
-[Link to GEE code](https://code.earthengine.google.com/?scriptPath=users%2Fcirgeo%2Fpirotti%3AFIRE-RES%2Ffire-res-biomass_ML){target=_blank}
-
+To harmonize between these two CRS the nearest neighbour resampling was 
+applied to convert 
 
 ### Masking non-burnable areas
 
@@ -349,4 +393,18 @@ make full use of parallel processing, we divided in chunks of
 
 ## UPDATES
 
-11 Dec. 2022 - migration of all code to R thanks to "rgee" library.
+ - 11 Dec. 2022 - migration of all code to R thanks to "rgee" library.
+ - 14 Dec. 2022 - convert all to CRS 4326 (geographic) with exact alignment to 
+the CEDA Biomass 2018 map [1] that is used for training.
+NB  the ETRS89 Lambert Azimuthal Equal Area Coordinate Reference System) [2] 
+would allow all cells to be effectively 1 ha (100 m x 100 m), but we decided to 
+keep a global reference frame for future developments outside Europe.
+
+
+## Bibliography
+ 
+[1] Santoro, M.; Cartus, O. (2019): ESA Biomass Climate Change Initiative (Biomass_cci): Global datasets of forest above-ground biomass for the year 2017, v1. via Centre for Environmental Data Analysis
+
+[2] A. Annoni et al., “Map Projections for Europe”, European Commission Joint Research Centre, reference EUR 20120 EN, 2003
+
+[3] Spatio-Temporal Asset Catalog for European-wide layers provided by Open Environmental Data Cube Europe, co-financed under Grant Agreement Connecting Europe Facility (CEF) Telecom project 2018-EU-IA-0095 by the European Union.
