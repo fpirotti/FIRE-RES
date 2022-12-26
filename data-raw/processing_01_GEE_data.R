@@ -6,32 +6,102 @@ ee_Initialize(quiet = T)
 ee_Initialize(user = 'ndef', drive = TRUE )
 # ee_install_upgrade()
 tiles <- sf::read_sf("data-raw/tiles/bigTiles.gpkg")
-AGB_2018 <- terra::rast("/archivio/shared/geodati/raster/AGB/ESA2018/ESACCI_BIOMASS_L4_AGB_100m_2018_v3_europe.tif")
-AGB_2018_e <- terra::rast("/archivio/shared/geodati/raster/AGB/ESA2018/ESACCI_BIOMASS_L4_AGB_100m_2018_v3_europe_stdError.tif")
+AGB_2018 <- terra::rast("/archivio/shared/geodati/raster/AGB/ESA2018/ESACCI-BIOMASS_L4_AGB_2018_v3_int16_europe.tif")
+AGB_2018_e <- terra::rast("/archivio/shared/geodati/raster/AGB/ESA2018/ESACCI-ESACCI_BIOMASS_L4_AGB_StdDev_2018_v3_int16_europe.tif")
+
 template <- "users/cirgeo/FIRE-RES/template"
-AGB_2018 <- terra::rast("data-raw/ESACCI-BIOMASS-L4-AGB-MERGED-100m-2018-fv3.0.nc")
+
 ##cut correctly without shifting the grid
 
+ceda_biomass_eu <- ee$Image("users/cirgeo/FIRE-RES/ESACCI-BIOMASS_L4_AGB_2018_v3_int16_europe")
+worldCover_forest <- ee$Image(features$LULC_WC_10m)
+createTrainingPoints <- function(in.tile){
 
+   tile <- sf_as_ee(in.tile)
+   bb<-tile$geometry()$bounds()
 
-doTrainingPoints <- function(){
+   lulc_mask <-  worldCover_forest$lt(50)$Or(worldCover_forest$gt(80))
+   sample1   = worldCover_forest$select('Map')$toInt()$mask(lulc_mask)$clip(bb)$stratifiedSample( numPoints=as.integer(3000) ,
+                                                                                        geometries=TRUE   )
+   sample2 = ceda_biomass_eu$divide(10)$toInt()$mask(lulc_mask)$clip(bb)$stratifiedSample(numPoints=as.integer(6000), geometries=TRUE)
+   sample = sample1$merge( sample2 )
 
+   task_img_container[[in.tile$ID]][["samples"]] = ee_table_to_drive(
+      folder = "FIRE-RES-DATA",
+      description = paste0("samples", in.tile$ID, collapse ="_"),
+      collection = sample,
+      fileFormat = "CSV",
+      fileNamePrefix = paste0("samples", in.tile$ID, collapse ="_")
+   )
+
+task_img_container[[in.tile$ID]][["samples"]]$start()
 }
 
 templateCeda <- ee$Image(template)
+worldCover_forest <- ee$Image(features$LULC_WC_10m)
+OpenDataHubLUCAS <- ee$Image(features$lcv_landcover_hcl_v1)
+s2 <- ee$ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
+landsat_evi <- ee$ImageCollection("LANDSAT/LC08/C01/T1_8DAY_EVI")
+landsat_ndvi <- ee$ImageCollection("LANDSAT/LC08/C01/T1_8DAY_NDVI")
+task_img_container<- list()
+
+
+eraMonthly <- ee$ImageCollection("ECMWF/ERA5/MONTHLY")
+getLandCoverMask <- function(in.tile){
+
+   tile <- sf_as_ee(in.tile)
+   bb<-tile$geometry()$bounds()
+   #$clip(bb)
+
+   ERAclimate<- eraMonthly$filterDate('2019-11-01', '2021-01-10')
+   gg<-ERAclimate$getInfo()
+   gg
+
+   length(gg$features)
+   task_img_container[[in.tile$ID]] <<- list(
+      # LULC_WC_10m = ee_image_to_drive(
+      #    folder = "FIRE-RES-DATA",
+      #    description = paste0("LULC_WC_10m", in.tile$ID, collapse ="_"),
+      #    image = worldCover_forest_100m$toInt16(),
+      #    fileFormat = "GEO_TIFF",
+      #    region = bb,
+      #    fileNamePrefix = paste0("LULC_WC_10m", in.tile$ID, collapse ="_"),
+      #    maxPixels = as.integer(300000000)
+      # ),
+      ERAclimate = ee_image_to_drive(
+         folder = "FIRE-RES-DATA",
+         description = paste0("ERAclimate", in.tile$ID, collapse ="_"),
+         image = ERAclimate$toInt16(),
+         fileFormat = "GEO_TIFF",
+         region = bb,
+         fileNamePrefix = paste0("ERAclimate", in.tile$ID, collapse ="_"),
+         maxPixels = as.integer(300000000)
+      )
+   )
+
+   task_img_container[[in.tile$ID]][["ERAclimate"]]$start()
+
+}
+
 
 getLandCoverMask <- function(in.tile){
 
    tile <- sf_as_ee(in.tile)
    bb<-tile$geometry()$bounds()
-
-   worldCover_forest <- ee$Image(features$LULC_WC_10m)#$clip(bb)
+#$clip(bb)
 
    worldcover_mask = worldCover_forest$neq(0)$multiply(worldCover_forest$lt(50))
-   red <- ee$Reducer$fixedHistogram(10,50,4)
+
+   red1 <- ee$Reducer$fixedHistogram(10,50,4)
+   red2 <- ee$Reducer$mode(NULL,NULL,12)
+
    worldCover_forest_tmp <- worldCover_forest$mask(worldcover_mask)$reduceResolution(
-       reducer= red,
+       reducer= red1,
        maxPixels= 128)$reproject( templateCeda$projection() )
+
+   OpenDataHubLUCAS_tmp <- OpenDataHubLUCAS$reduceResolution(
+      reducer= red2,
+      maxPixels= 12)$reproject( templateCeda$projection() )
 
 
    nn  <- ee$List(worldCover_forest_tmp$toDictionary()$get('Map_class_names'));
@@ -40,50 +110,391 @@ getLandCoverMask <- function(in.tile){
    worldCover_forest_100m <- worldCover_forest_tmp$arrayFlatten( c(ee$List(nns), ee$List(c('class', 'f') ) ) )$select(c('Tree_f','Shrubland_f','Grassland_f', 'Cropland_f'))$multiply(100);
 
 
-   task_img <- ee_image_to_drive(
-      folder = "FIRE-RES-DATA",
-      description = paste0("world", in.tile$ID, collapse ="_"),
-      image = worldCover_forest_100m$toInt16(),
-      fileFormat = "GEO_TIFF",
-      region = bb,
-      fileNamePrefix = paste0("worldLandCoverFraction", in.tile$ID, collapse ="_"),
-      maxPixels = as.integer(300000000)
+   task_img_container[[in.tile$ID]] <<- list(
+      # LULC_WC_10m = ee_image_to_drive(
+      #    folder = "FIRE-RES-DATA",
+      #    description = paste0("LULC_WC_10m", in.tile$ID, collapse ="_"),
+      #    image = worldCover_forest_100m$toInt16(),
+      #    fileFormat = "GEO_TIFF",
+      #    region = bb,
+      #    fileNamePrefix = paste0("LULC_WC_10m", in.tile$ID, collapse ="_"),
+      #    maxPixels = as.integer(300000000)
+      # ),
+      lcv_landcover_hcl_v1 = ee_image_to_drive(
+         folder = "FIRE-RES-DATA",
+         description = paste0("lcv_landcover_hcl_v1", in.tile$ID, collapse ="_"),
+         image = OpenDataHubLUCAS_tmp$toInt16(),
+         fileFormat = "GEO_TIFF",
+         region = bb,
+         fileNamePrefix = paste0("lcv_landcover_hcl_v1", in.tile$ID, collapse ="_"),
+         maxPixels = as.integer(300000000)
+      )
    )
-   task_img$start()
+
+   # task_img_container[[in.tile$ID]][["LULC_WC_10m"]]$start()
+   task_img_container[[in.tile$ID]][["lcv_landcover_hcl_v1"]]$start()
 
 }
 
-## features for prediction
+
+
+eraClimate <- ee$Image("ECMWF/ERA5/MONTHLY")
+getERAclimate <- function(in.tile){
+
+   tile <- sf_as_ee(in.tile)
+   bb<-tile$geometry()$bounds()
+
+
+   task_img_container[[in.tile$ID]][[ "ERAclimate" ]] <<- ee_image_to_drive(
+      folder = "FIRE-RES-DATA",
+      description = paste("ERAclimate", in.tile$ID, sep ="_"),
+      image = eraClimate$toByte(),
+      fileFormat = "GEO_TIFF",
+      region = bb,
+      fileNamePrefix = paste("ERAclimate", in.tile$ID, sep ="_"),
+      maxPixels = as.integer(300000000)
+   )
+
+   task_img_container[[in.tile$ID]][[ "ERAclimate" ]]$start()
+}
+
+bioclim <- ee$Image(features$bioclim)
+srtm <- ee$Image(features$srtm)
+forestCover <- ee$Image(features$forestCover)
+canopyHeight <- ee$Image(features$canopy_height)
+getFeatures <- function(in.tile){
+
+   worldcover_mask <-  worldCover_forest$lt(50)$Or(worldCover_forest$gt(80))
+   tile <- sf_as_ee(in.tile)
+   bb<-tile$geometry()$bounds()
+
+   forestCanopyHeight = canopyHeight$reduceResolution(
+      reducer=  ee$Reducer$mean(),
+      maxPixels= 256)$reproject( templateCeda$projection() )
+
+   lossyear <- forestCover$select("lossyear")$reduceResolution(
+      reducer=  ee$Reducer$max() )$reproject( templateCeda$projection() )
+
+   fc <- forestCover$select("treecover2000")$reduceResolution(
+                                           reducer=  ee$Reducer$mean(),
+                                           maxPixels= 20)$reproject( templateCeda$projection() )
+
+   task_img_container[[in.tile$ID]] <<- list(
+      # bioclim = ee_image_to_drive(
+      #    folder = "FIRE-RES-DATA",
+      #    description = paste("bioclim", in.tile$ID, sep ="_"),
+      #    image = bioclim$toInt16(),
+      #    fileFormat = "GEO_TIFF",
+      #    region = bb,
+      #    fileNamePrefix = paste("bioclim", in.tile$ID, sep ="_"),
+      #    maxPixels = as.integer(300000000)
+      # )  ,
+      # forestCover = ee_image_to_drive(
+      #    folder = "FIRE-RES-DATA",
+      #    description = paste("forestCover", in.tile$ID, sep ="_"),
+      #    image = fc$toByte(),
+      #    fileFormat = "GEO_TIFF",
+      #    region = bb,
+      #    fileNamePrefix = paste("forestCover", in.tile$ID, sep ="_"),
+      #    maxPixels = as.integer(300000000)
+      # ),
+      # lossyear = ee_image_to_drive(
+      #    folder = "FIRE-RES-DATA",
+      #    description = paste("lossyear", in.tile$ID, sep ="_"),
+      #    image = lossyear$toByte(),
+      #    fileFormat = "GEO_TIFF",
+      #    region = bb,
+      #    fileNamePrefix = paste("lossyear", in.tile$ID, sep ="_"),
+      #    maxPixels = as.integer(300000000)
+      # ),
+      # forestCanopyHeight = ee_image_to_drive(
+      #    folder = "FIRE-RES-DATA",
+      #    description = paste("forestCanopyHeight", in.tile$ID, sep ="_"),
+      #    image = forestCanopyHeight$toByte(),
+      #    fileFormat = "GEO_TIFF",
+      #    region = bb,
+      #    fileNamePrefix = paste("forestCanopyHeight", in.tile$ID, sep ="_"),
+      #    maxPixels = as.integer(300000000)
+      # ),
+      # elevation = ee_image_to_drive(
+      #    folder = "FIRE-RES-DATA",
+      #    description = paste("elevation", in.tile$ID, sep ="_"),
+      #    image = srtm$updateMask(worldcover_mask)$reproject( templateCeda$projection() )$toInt16(),
+      #    fileFormat = "GEO_TIFF",
+      #    region = bb,
+      #
+      #    fileNamePrefix = paste("elevation", in.tile$ID, sep ="_"),
+      #    maxPixels = as.integer(300000000)
+      # ),
+      # LCmask = ee_image_to_drive(
+      #    folder = "FIRE-RES-DATA",
+      #    description = paste("LCmask", in.tile$ID, sep ="_"),
+      #    image = worldcover_mask$reproject( templateCeda$projection() )$toByte(),
+      #    fileFormat = "GEO_TIFF",
+      #    region = bb,
+      #
+      #    fileNamePrefix = paste("LCmask", in.tile$ID, sep ="_"),
+      #    maxPixels = as.integer(300000000)
+      # )
+   )
+   # task_img_container[[in.tile$ID]][["bioclim"]]$start()
+   # task_img_container[[in.tile$ID]][["forestCanopyHeight"]]$start()
+   ID2 <- in.tile$ID
+   # for(ID2 in names(task_img_container ) ){
+   for(nnn in names(task_img_container[[ID2]]) ){
+      message("Checking ", nnn)
+      task.status <- task_img_container[[ID2]][[nnn]]$status()
+      # message("STATUS ", task.status$state )
+      # next
+      if( task.status$state!="RUNNING" && task.status$state!="COMPLETED" ) {
+         task_img_container[[ID2]][[nnn]]$start()
+      }
+    }
+ # }
+
+
+}
+
+
+
+getVegetationType <- function(in.tile){
+
+   # worldcover_mask <-  worldCover_forest$lt(50)$Or(worldCover_forest$gt(80))
+   tile <- sf_as_ee(in.tile)
+   bb<-tile$geometry()$bounds()
+
+   eeimages <- c()
+   eeimagesTot <- c()
+   for(specie in names(features$vegetationSpecies)){
+      classID <- length(eeimages)+1
+      tmpimage <- ee$Image(features$vegetationSpecies[[specie]])
+      eeimagesTot <- c(eeimagesTot, tmpimage )
+
+      tmpimage2 <-tmpimage$addBands(ee$Image$constant(ee$Number(classID))$rename('VegClass')$byte())$reproject( tmpimage$projection() )
+      eeimages <- c(eeimages, tmpimage2 )
+   }
+
+   eeimageCollection <- ee$ImageCollection(eeimages)
+   array = eeimageCollection$toArray();
+   axes = list( image=0, band=1 )
+   sort = array$arraySlice(axes$band, 0, 1);  # select bands from index 0 to 1 (NDVI)
+   sorted = array$arraySort(sort);
+   lengthArr = sorted$arrayLength(axes$image)
+   valuesMax = sorted$arraySlice(axes$image, lengthArr$subtract(1), lengthArr)
+
+   vmax = valuesMax$arrayProject(list(axes$band) )$arrayFlatten( list( c('b1', 'VegClass') ) )$reproject( templateCeda$projection() )
+   vmax$getInfo()
+   eeimageFinal <- ee$ImageCollection(c(vmax$select("VegClass"), eeimagesTot) )$toBands()$rename( c("VegHighestProb", names(features$vegetationSpecies) ) )$reproject( templateCeda$projection() )
+
+   task_img_container[[in.tile$ID]][[ "vegType" ]] <<- ee_image_to_drive(
+      folder = "FIRE-RES-DATA",
+      description = paste("vegType", in.tile$ID, sep ="_"),
+      image = eeimageFinal$toByte(),
+      fileFormat = "GEO_TIFF",
+      region = bb,
+      fileNamePrefix = paste("vegType", in.tile$ID, sep ="_"),
+      maxPixels = as.integer(300000000)
+   )
+
+   task_img_container[[in.tile$ID]][[ "vegType" ]]$start()
+
+
+}
+
+getVegIndexes <- function(in.tile){
+
+   worldcover_mask <-  worldCover_forest$lt(50)$Or(worldCover_forest$gt(80))
+   tile <- sf_as_ee(in.tile)
+   bb<-tile$geometry()$bounds()
+   # bb<-polygon$bounds()
+   maskAndClipAll <- function(image) {
+      image = image$clip(bb)
+      cp = image$select('MSK_CLDPRB')
+      sp = image$select('MSK_SNWPRB')
+      mask = cp$eq(0)$multiply(sp$eq(0))$multiply(worldcover_mask);
+      image$updateMask(mask);
+   }
+
+   landsat_ndvit <- landsat_ndvi$filterBounds(bb)$filterDate('2020-01-01', '2022-10-10')$reduce(ee$Reducer$percentile(list(95) ) )$updateMask(worldcover_mask)$multiply(10000)$reproject( templateCeda$projection() )
+    landsat_evit <-  landsat_evi$filterBounds(bb)$filterDate('2020-01-01', '2022-10-10')$reduce(ee$Reducer$percentile( list(95) ) )$updateMask(worldcover_mask)$multiply(10000)$reproject( templateCeda$projection() )
+
+   # s2_tmp <- s2$filterBounds(bb)$filterDate('2020-01-01', '2022-10-10')$filter( ee$Filter$lt('CLOUDY_PIXEL_PERCENTAGE',20));
+   # s2_tmp <- s2_tmp$map(maskAndClipAll)
+   # s2_tmp_prj <- s2_tmp$first()$select('B8')$projection();
+   #
+   # ndvi <- s2_tmp$map( function(image){
+   #       image$normalizedDifference( c('B8', 'B4'))$rename('NDVI')$multiply(1000)
+   #    })$reduce( ee$Reducer$max() )$reproject(  s2_tmp_prj   )$reduceResolution(
+   #                                      reducer=  ee$Reducer$mean(),
+   #                                      maxPixels= 90)$reproject( templateCeda$projection() )
+   # evi <- s2_tmp$map( function(image){
+   #    eviband =  image$expression(  '2.5 * ((NIR-RED) / ((NIR + (6 * RED) - (7.5* BLUE) ) +1))',
+   #                                  list(NIR=image$select("B8"),
+   #                                       RED=image$select("B4"),
+   #                                       BLUE=image$select("B1") ) )$rename('EVI')
+   #
+   #    eviband$updateMask(eviband$gt(-5)$And(eviband$lt(10)) )$multiply(1000)
+   #
+   #
+   # })$reduce( ee$Reducer$max() )$reproject(  s2_tmp_prj   )$reduceResolution(
+   #    reducer=  ee$Reducer$mean(),
+   #    maxPixels= 90)$reproject( templateCeda$projection() )
+
+
+   task_img_container[[in.tile$ID]] <<- list(
+      evi95perc = ee_image_to_drive(
+         folder = "FIRE-RES-DATA",
+         description = paste("EVI", in.tile$ID, sep ="_"),
+         image = landsat_evit$toInt16(),
+         fileFormat = "GEO_TIFF",
+         region = bb,
+         fileNamePrefix = paste("EVI", in.tile$ID, sep ="_"),
+         maxPixels = as.integer(300000000)
+      ) ,
+      ndvi95perc = ee_image_to_drive(
+         folder = "FIRE-RES-DATA",
+         description = paste("NDVI", in.tile$ID, sep ="_"),
+         image = landsat_ndvit$toInt16(),
+         fileFormat = "GEO_TIFF",
+         region = bb,
+         fileNamePrefix = paste("NDVI", in.tile$ID, sep ="_"),
+         maxPixels = as.integer(300000000)
+      )
+   )
+
+   # task_img_container[[in.tile$ID]][["LULC_WC_10m"]]$start()
+   task_img_container[[in.tile$ID]][["ndvi95perc"]]$start()
+   task_img_container[[in.tile$ID]][["evi95perc"]]$start()
+
+}
+
+## download from google drive ----
+files = googledrive::drive_ls("FIRE-RES-DATA")
+for(file in files$name){
+   message("=====", file)
+   nm<-strsplit(file, "_")[[1]]
+   fname<-NULL
+   if(nm[[1]]=="NDVI") {
+      fname <- file.path(getwd(), "output", "featureRasters", nm[[2]], "NDVI_max" )
+   }
+   if(nm[[1]]=="EVI") {
+      fname <- file.path(getwd(), "output", "featureRasters", nm[[2]], "EVI_mean" )
+   }
+   raster::extension(fname)<-"tif"
+
+   message( fname)
+
+   if(!file.exists(fname)){
+       googledrive::drive_download(file, path = fname)
+   }
+   #
+}
+
+
+## functions for foliage fraction ----
+ fff <- list(
+    piceaAbies = function(total.biomass, height){
+       if(height < 5){
+          return(total.biomass*0.06)
+       }
+       if(height > 10){
+          return(total.biomass*0.03)
+       }
+       return(total.biomass*0.04)
+    },
+    abiesAlba = function(total.biomass, height){
+       if(height < 5){
+          return(total.biomass*0.06)
+       }
+       else if(height >= 5 && height <= 10 ){
+          return(total.biomass*0.04)
+       }
+       else if(height > 10){
+          return(total.biomass*0.03)
+       }
+
+
+       return(total.biomass*0.04)
+    }
+ )
+
+
+## Check Tasks and download -----
+checkTasks <- function(taskcontainer){
+
+   task_img_container <- taskcontainer
+
+   for(i in names(task_img_container) ){
+
+      for(i2 in names(task_img_container[[i]]) ) {
+
+         tt<-task_img_container[[i]][[i2]]$status()
+
+
+         fname <- file.path(getwd(), "output", "featureRasters", i, i2 )
+
+         dirname <- dirname(fname)
+         raster::extension(fname)<-"tif"
+         if(!dir.exists(dirname)){
+            message("Creating directory ", dirname)
+            dir.create(dirname, recursive=TRUE)
+         }
+
+
+         if(!file.exists(fname)){
+
+            if(tt$state!="COMPLETED") {
+               message(".....Not completed: ", i, " -- ", i2, "... skipping")
+               next
+            } else {
+
+               message("....COMPLETED: ", i, " -- ", i2, " ... DOWNLOADING")
+               img <- ee_drive_to_local(task = task_img_container[[i]][[i2]],
+                                        dsn= fname )
+               }
+
+         }
+         else {
+            message("File ",  fname, " already downloaded... skipping ")
+         }
+      }
+   }
+}
+
+## features for prediction ----
  features <- list(
    forestCover = "UMD/hansen/global_forest_change_2021_v1_9",
    LULC = "COPERNICUS/Landcover/100m/Proba-V-C3/Global/2019",
    ALOSyearlyMosaic = "JAXA/ALOS/PALSAR/YEARLY/SAR/2020",
    canopy_height  = "users/nlang/ETH_GlobalCanopyHeight_2020_10m_v1",
    sd_canopy_height  = "users/nlang/ETH_GlobalCanopyHeightSD_2020_10m_v1",
-   # ndvi = "VITO/PROBAV/C1/S1_TOC_100M",
+   # ndvi = "COPERNICUS/S2_SR_HARMONIZED",
    srtm = "USGS/GMTED2010",
    LULC_WC_10m  = "ESA/WorldCover/v100/2020",
    bioclim  = "WORLDCLIM/V1/BIO",
    lcv_landcover_hcl_v1= "users/cirgeo/FIRE-RES/open/lcv_landcover_hcl_v1",
-   veg_abies_alba_anv_v3= "users/cirgeo/FIRE-RES/open/veg_abies_alba_anv_v3",
-   veg_castanea_sativa_anv_v3= "users/cirgeo/FIRE-RES/open/veg_castanea_sativa_anv_v3",
-   veg_corylus_avellana_anv_v3= "users/cirgeo/FIRE-RES/open/veg_corylus_avellana_anv_v3",
-   veg_fagus_sylvatica_anv_v3= "users/cirgeo/FIRE-RES/open/veg_fagus_sylvatica_anv_v3",
-   veg_olea_europaea_anv_v3= "users/cirgeo/FIRE-RES/open/veg_olea_europaea_anv_v3",
-   veg_picea_abies_anv_v3= "users/cirgeo/FIRE-RES/open/veg_picea_abies_anv_v3",
-   veg_pinus_halepensis_anv_v3= "users/cirgeo/FIRE-RES/open/veg_pinus_halepensis_anv_v3",
-   veg_pinus_nigra_anv_v3= "users/cirgeo/FIRE-RES/open/veg_pinus_nigra_anv_v3",
-   veg_pinus_pinea_anv_v3= "users/cirgeo/FIRE-RES/open/veg_pinus_pinea_anv_v3",
-   veg_pinus_sylvestris_anv_v3= "users/cirgeo/FIRE-RES/open/veg_pinus_sylvestris_anv_v3",
-   veg_prunus_avium_anv_v3= "users/cirgeo/FIRE-RES/open/veg_prunus_avium_anv_v3",
-   veg_quercus_cerris_anv_v3= "users/cirgeo/FIRE-RES/open/veg_quercus_cerris_anv_v3",
-   veg_quercus_ilex_anv_v3= "users/cirgeo/FIRE-RES/open/veg_quercus_ilex_anv_v3",
-   veg_quercus_robur_anv_v3= "users/cirgeo/FIRE-RES/open/veg_quercus_robur_anv_v3",
-   veg_quercus_suber_anv_v3= "users/cirgeo/FIRE-RES/open/veg_quercus_suber_anv_v3",
-   veg_salix_caprea_anv_v3 = "users/cirgeo/FIRE-RES/open/veg_salix_caprea_anv_v3"
+   vegetationSpecies = list(
+      abies_alba= "users/cirgeo/FIRE-RES/open/veg_abies_alba_anv_v3",
+      castanea_sativa= "users/cirgeo/FIRE-RES/open/veg_castanea_sativa_anv_v3",
+      corylus_avellana= "users/cirgeo/FIRE-RES/open/veg_corylus_avellana_anv_v3",
+      fagus_sylvatica= "users/cirgeo/FIRE-RES/open/veg_fagus_sylvatica_anv_v3",
+      olea_europaea= "users/cirgeo/FIRE-RES/open/veg_olea_europaea_anv_v3",
+      picea_abies= "users/cirgeo/FIRE-RES/open/veg_picea_abies_anv_v3",
+      pinus_halepensis= "users/cirgeo/FIRE-RES/open/veg_pinus_halepensis_anv_v3",
+      pinus_nigra= "users/cirgeo/FIRE-RES/open/veg_pinus_nigra_anv_v3",
+      pinus_pinea= "users/cirgeo/FIRE-RES/open/veg_pinus_pinea_anv_v3",
+      pinus_sylvestris= "users/cirgeo/FIRE-RES/open/veg_pinus_sylvestris_anv_v3",
+      prunus_avium= "users/cirgeo/FIRE-RES/open/veg_prunus_avium_anv_v3",
+      quercus_cerris= "users/cirgeo/FIRE-RES/open/veg_quercus_cerris_anv_v3",
+      quercus_ilex= "users/cirgeo/FIRE-RES/open/veg_quercus_ilex_anv_v3",
+      quercus_robur= "users/cirgeo/FIRE-RES/open/veg_quercus_robur_anv_v3",
+      quercus_suber= "users/cirgeo/FIRE-RES/open/veg_quercus_suber_anv_v3",
+      salix_caprea = "users/cirgeo/FIRE-RES/open/veg_salix_caprea_anv_v3"
+   )
  )
 
- ## Collect CRS information
+
+## Collect CRS information ----
  features.crs <- list()
 
  ff<-features[[featureName]]
@@ -101,45 +512,24 @@ getLandCoverMask <- function(in.tile){
    features.crs[[featureName]] <-crs
  }
 
-
-tilesToGetTrainingPoints<-c("B0", "E0", "F1")
+## RUN FUNCTIONS ----
+tilesToGetTrainingPoints<-c("B0",  "F1", "E4")
 for(tilen in 1:nrow(tiles)){
   tt<-  tiles[tilen,]
-  print(tt$ID)
-   if( is.element(tt$ID, tilesToGetTrainingPoints) ){
-      print("do traing")
+
+   if(is.element(tt$ID, tilesToGetTrainingPoints)){
+     # getVegIndexes(tt)
+     # getFeatures(tt)
+     # getVegetationType(tt)
+     # createTrainingPoints(tt)
+
+     print(tt$ID)
    }
-  next
-  in.tile<-tt
-  bb<-tile$geometry()$bounds()
-
-  for(featureName in names(features) ){
-    message(featureName)
-    ff<-features[[featureName]]
-    feature <- ee$Image(ff)
-    clipped <- feature$clip( bb );
-    message(feature$projection()$crs()$getInfo())
-
-  }
-
-
-  task_img <- ee_image_to_drive(
-    folder = "FIRE-RES-DATA",
-    image = clipped,
-    fileFormat = "GEO_TIFF",
-    region = bb,
-    fileNamePrefix = paste(tt$ID, sep="_", ),
-    maxPixels = as.integer(300000000)
-    )
-  task_img$start()
 
 
 }
 
 
-for(tilen in 1:nrow(tiles)){
 
-
-
-
- }
+# Map(file.remove,
+# list.files("output/featureRasters", pattern = "_max.*", full.names = T, recursive = T) )

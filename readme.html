@@ -60,6 +60,28 @@ if (window.hljs) {
 
 
 
+<style type="text/css">
+/* for pandoc --citeproc since 2.11 */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
 
 
 
@@ -248,7 +270,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Biomass estimation for FIRE-RES WP5.6</h1>
 <h4 class="author">Francesco Pirotti, Erico Kutchartt</h4>
-<h4 class="date">20 December, 2022</h4>
+<h4 class="date">26 December, 2022</h4>
 
 </div>
 
@@ -286,13 +308,32 @@ div.tocify {
          });   
   });
 </script>
-<div id="rationale" class="section level2">
-<h2>Rationale</h2>
+<div id="rationale---abstract" class="section level1">
+<h1>Rationale - Abstract</h1>
 <p>Biomass at European and Global scale has been estimated with several
 approaches.</p>
 <p>XXX XXXX</p>
 <p>In this approach we</p>
 </div>
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>Information on above ground biomass (AGB) is important for several
+applications. XXXX list here the applications…. In this work we focus on
+AGB as input information for mapping fuel models (fuel types?). We use
+the term fuel model as defined in <span class="citation">(Scott and
+Burgan 2005)</span>, and in the sense that it is then used as input to
+fire spread models. In <span class="citation">(Scott and Burgan
+2005)</span> the term “fuel load” AGB</p>
+<p>Two things are important to note: (i) AGB is only one aspect of
+several characteristics that concur to define a specific model,
+i.e. moisture and vegetation type (citations) and (ii) the smaller
+components of AGB are of higher importance for fire spread
+(citations).</p>
+<p>The rest of this paper is organized as follows: material and methods
+describing the input variables and the AI training phase,</p>
+</div>
+<div id="materials-and-methods" class="section level1">
+<h1>Materials and Methods</h1>
 <div id="data" class="section level2">
 <h2>Data</h2>
 <p>The following data sources are used</p>
@@ -318,7 +359,14 @@ year 1018, version 3</p>
 </div>
 </div>
 <div id="independent-variables" class="section level3">
-<h3>Independent variables</h3>
+<h3>Independent variables:</h3>
+<p>Also referred to as “features” or “descriptors”, these are variables
+that are likely to be correlated, and thus help to predict, the biomass
+in a specific location.</p>
+<p>In general obvious variables such as forest canopy cover fraction and
+tree height values are used, but also more indirect variables such as
+climatic variables, height above sea level, forest types etc… are used
+in the machine learning predictive algorithm.</p>
 <div id="tree-species" class="section level4">
 <h4>TREE SPECIES</h4>
 <p><a
@@ -356,8 +404,8 @@ target="_blank">https://opengeohub.org/datasets</a></p>
 </ul></li>
 </ul>
 </div>
-<div id="land-use" class="section level4">
-<h4>LAND USE</h4>
+<div id="land-cover" class="section level4">
+<h4>LAND COVER</h4>
 <p><a
 href="https://opengeohub.org/datasets/high-resolution-annual-continental-european-land-use-land-cover-data-since-2000/"
 target="_blank">LINK TO DATA HERE</a>.</p>
@@ -370,21 +418,11 @@ target="_blank">LINK TO DATA HERE</a>.</p>
 </ul></li>
 </ul>
 </div>
-</div>
-<div id="independent-variables-1" class="section level3">
-<h3>Independent variables:</h3>
-<p>Also referred to as “features” or “descriptors”, these are variables
-that are likely to be correlated, and thus help to predict, the biomass
-in a specific location.</p>
-<p>In general obvious variables such as forest canopy cover fraction and
-tree height values are used, but also more indirect variables such as
-climatic variables, height above sea level, forest types etc… are used
-in the machine learning predictive algorithm.</p>
 <div
 id="copernicus_landcover_100m_proba-v-c3_global-removed---see-esa-world-cover-below"
 class="section level4">
-<h4>COPERNICUS_Landcover_100m_Proba-V-C3_Global (REMOVED - SEE ESA WORLD
-COVER BELOW)</h4>
+<h4>COPERNICUS_Landcover_100m_Proba-V-C3_Global (<u>REMOVED</u> - SEE
+ESA WORLD COVER BELOW)</h4>
 <p><a
 href="https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_Landcover_100m_Proba-V-C3_Global"
 target="_blank">LINK TO DATA HERE</a></p>
@@ -452,7 +490,9 @@ TO DATA HERE</a></p>
 href="https://proba-v.vgt.vito.be/sites/proba-v.vgt.vito.be/files/products_user_manual.pdf">More
 info</a></p>
 <p>NDVI is well-known to be related to biomass values, even if the
-prediction efficiency decreases at higher biomass values.</p>
+prediction efficiency decreases drastically at higher biomass values.
+Along with active remote sensing (SAR), good estimates can be achieved
+<span class="citation">(Vaglio Laurin et al. 2016)</span></p>
 <ul>
 <li>Year: 2020</li>
 <li>Composite of cloudless imagery with MAX NDVI value</li>
@@ -575,28 +615,64 @@ balanced representation of different land use (shrub to thick forest)
 and of estimated biomass at pixel level.</p>
 </div>
 </div>
+<div id="artificial-intelligence" class="section level2">
+<h2>Artificial Intelligence</h2>
+<p>We used ensemble of machine learning methods from R-CRAN “h2o”
+library <span class="citation">(<strong>h2o_DL_booklet?</strong>;
+<strong>h2o_R_package?</strong>)</span>, using a rich set of
+descriptors.</p>
+</div>
 <div id="training-ai" class="section level2">
 <h2>Training AI</h2>
-<p>Biomass ground truth data are not easily reached due to the very
-different sampling protocols and many countries not providing the
-information as open data.</p>
-<p>Some dedicated EU projects, such as GLOBIOMASS, were funded with the
-main goal to create biomass maps. We therefore decided to use these maps
-for training an ensemble of machine learning methods using as
-descriptors the data-rich environment from the above-listed data,
-<strong>for a total of 27 variables as features</strong>.</p>
+<p>AGB data are not easily acquired as ground truth requires measuring
+in the field dendrometric variables (DBH and tree heights) over a large
+area, and then applying the necessary biomass models <strong>(citation
+here)</strong> to convert these to AGB. Commonly forest plots are
+circular and much smaller than the 1 ha unit that is the average
+resolution of the AGB map.</p>
+<p>Also the sampling protocols are different from country to country,
+and national inventories are carried out at different times. Another
+factor to is that many countries are not providing the information as
+open data.</p>
+<p>Some dedicated EU projects <strong>(other projects here)</strong>,
+such as GLOBIOMASS <span class="citation">(Santoro and Cartus
+2021a)</span>, were funded with the main goal to create biomass maps.
+AGB values from this map were used for training, testing and initial
+validation. We will refer to these data as AGB2018 as the latest dataset
+is for 2018 with version 3 providing Mg/ha values across the world.</p>
+<p>The training samples were extracted by stratified sampling of both
+the land cover and the biomass, in order to have a balanced
+representation across vegetation land cover classes and biomass values.
+For LC only vegetation classes are selected, with a target of 3000
+sampling points randomly defined for each class. Biomass values were
+clustered in classes of 10 Mg/ha, by dividing the biomass value by 10
+and truncating to an integer value. This provided with an average of 30
+classes as biomass values range from zero to 300 Mg/ha in most of
+Europe. For each biomass class a target of 6000 samples was extracted.
+At the end of the process, for the 21 tiles, about 4 million samples
+over estimated vegetation areas with different land cover and across the
+interval of biomass values are available for training, testing and
+validating.</p>
+<div class="figure">
+<img src="man/images/trainingPoints.jpg" width="913" alt="" />
+<p class="caption">Training points divided by tile</p>
+</div>
 <p>The plot below shows the relation between the variables and the
 biomass.</p>
-<p><img id="id1" src="man/images/variables.jpg" style="width:500px;" /></p>
+<p><img src="man/images/variables.jpg" id="id1" style="width:500px;"/></p>
 <p>The rationale behind this decision is that the dependent variable,
-i.e. the AGB, is mapped with a well-documented uncertainty via the 2018
+i.e. the AGB, is mapped with a well-documented uncertainty via the 2018
 CEDA biomass map. By collecting a large number of samples from the area
 with stratified sampling that accounts for land-cover type and biomass
 class, we will augment available training data from ground samples.</p>
-<p>The continous biomass variable values were grouped in 10 classes each
-of size 50 Mg/ha to provide a stratified sampling that represent evenly
-different biomass profiles. A total of <strong>260’000 samples</strong>
-are used for training.</p>
+</div>
+<div id="sampling-design-for-training" class="section level2">
+<h2>Sampling design for TRAINING</h2>
+<p>Training requires values of AGB values of the Over all Europe,</p>
+<p>The continuous biomass variable values were grouped in 10 classes
+each of size 50 Mg/ha to provide a stratified sampling that represent
+evenly different biomass profiles. A total of <strong>260’000
+samples</strong> are used for training.</p>
 <p>5-fold cross-validation on training data (Metrics computed for
 combined holdout predictions) provided the following performance metrics
 for biomass (Mg/ha):</p>
@@ -606,7 +682,7 @@ for biomass (Mg/ha):</p>
 <p>The plots below are variable importance from the random forest and
 the gradient boosting methods of the ensamble pf machine learning
 methods.</p>
-<p><img id="id5" src="man/images/variable_importance.png" style="width:700px;" /></p>
+<p><img src="man/images/variable_importance.png" id="id5" style="width:700px;"/></p>
 </div>
 </div>
 <div id="testing-ai" class="section level2">
@@ -615,7 +691,7 @@ methods.</p>
 the training points (stratified the same way), provided the following
 performance metrics for biomass (Mg/ha):</p>
 <p>MSE: | 1421 RMSE: | 38.7 MAE: | 25.6</p>
-<p><img  id="id2" src="man/images/performance.png" style="width:500px;" /><br />
+<p><img src="man/images/performance.png" id="id2" style="width:500px;"/><br />
 <label > </label></p>
 </div>
 <div id="post-processing" class="section level2">
@@ -636,13 +712,21 @@ GitLAB repository here</a> were used.</p>
 Model</a></p>
 <p><a href="output/biomassFromCEDA.tif"  >DOWNLOAD Biomass MAP from ESA
 Climate (CEDA)</a></p>
-<p><img  id="id8" src="man/images/compare.jpg" style="width:800px;" /></p>
-<p><img  id="id9" src="man/images/compareAI.jpg" style="width:800px;" /></p>
-<p><img  id="id99" src="man/images/diff.jpg" style="width:800px;" /></p>
-<p><img  id="id7" src="man/images/DifferenceDistribution.png" style="width:500px;" /></p>
+<p><img src="man/images/compare.jpg" id="id8" style="width:800px;"/></p>
+<p><img src="man/images/compareAI.jpg" id="id9" style="width:800px;"/></p>
+<p><img src="man/images/diff.jpg" id="id99" style="width:800px;"/></p>
+<p><img src="man/images/DifferenceDistribution.png" id="id7" style="width:500px;"/></p>
 </div>
 <div id="problems-and-solutions" class="section level2">
 <h2>Problems and solutions</h2>
+<div id="alignment" class="section level3">
+<h3>Alignment</h3>
+<p>Cropping, clipping and reprojecting often leads to misalignment of
+raster grid, adding uncertainty to data spatial relationship - see image
+below. To avoid this, care must be applied when using such tools to keep
+the same reference grid.</p>
+<p><img src="man/images/misalignment.png" style="width:500px;"/></p>
+</div>
 <div id="data-size" class="section level3">
 <h3>Data size</h3>
 <p>Maximum size of data tables in R is about 2 billion elements. A 100 m
@@ -659,24 +743,52 @@ prediction step.</p>
 <li>11 Dec. 2022 - migration of all code to R thanks to “rgee”
 library.</li>
 <li>14 Dec. 2022 - convert all to CRS 4326 (geographic) with exact
-alignment to the CEDA Biomass 2018 map [1] that is used for training. NB
-the ETRS89 Lambert Azimuthal Equal Area Coordinate Reference System) [2]
-would allow all cells to be effectively 1 ha (100 m x 100 m), but we
-decided to keep a global reference frame for future developments outside
-Europe.</li>
+alignment to the CEDA Biomass 2018 map <span class="citation">(Santoro
+and Cartus 2021b)</span> that is used for training. NB the ETRS89
+Lambert Azimuthal Equal Area Coordinate Reference System) <span
+class="citation">(Annoni et al. 2001)</span> would allow all cells to be
+effectively 1 ha (100 m x 100 m), but we decided to keep a global
+reference frame for future developments outside Europe.</li>
 </ul>
 </div>
-<div id="bibliography" class="section level2">
-<h2>Bibliography</h2>
-<p>[1] Santoro, M.; Cartus, O. (2019): ESA Biomass Climate Change
-Initiative (Biomass_cci): Global datasets of forest above-ground biomass
-for the year 2017, v1. via Centre for Environmental Data Analysis</p>
-<p>[2] A. Annoni et al., “Map Projections for Europe”, European
-Commission Joint Research Centre, reference EUR 20120 EN, 2003</p>
-<p>[3] Spatio-Temporal Asset Catalog for European-wide layers provided
-by Open Environmental Data Cube Europe, co-financed under Grant
-Agreement Connecting Europe Facility (CEF) Telecom project
-2018-EU-IA-0095 by the European Union.</p>
+<div id="section" class="section level2">
+<h2></h2>
+</div>
+<div id="references" class="section level2 unnumbered">
+<h2 class="unnumbered">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-annoni2001" class="csl-entry">
+Annoni, A, C Luzet, E Gubler, and J Ihde. 2001. <span>“Map Projections
+for Europe.”</span>
+</div>
+<div id="ref-santoro2021" class="csl-entry">
+Santoro, Maurizio, and Oliver Cartus. 2021b. <span>“ESA Biomass Climate
+Change Initiative (Biomass<span>_</span>cci): Global Datasets of Forest
+Above-Ground Biomass for the Years 2010, 2017 and 2018, V3.”</span> <a
+href="https://doi.org/10.5285/5F331C418E9F4935B8EB1B836F8A91B8">https://doi.org/10.5285/5F331C418E9F4935B8EB1B836F8A91B8</a>.
+</div>
+<div id="ref-santoro2021a" class="csl-entry">
+———. 2021a. <span>“ESA Biomass Climate Change Initiative
+(Biomass<span>_</span>cci): Global Datasets of Forest Above-Ground
+Biomass for the Years 2010, 2017 and 2018, V3.”</span> <a
+href="https://doi.org/10.5285/5F331C418E9F4935B8EB1B836F8A91B8">https://doi.org/10.5285/5F331C418E9F4935B8EB1B836F8A91B8</a>.
+</div>
+<div id="ref-scott2005" class="csl-entry">
+Scott, Joe H., and Robert E. Burgan. 2005. <span>“Standard Fire Behavior
+Fuel Models: A Comprehensive Set for Use with Rothermel’s Surface Fire
+Spread Model.”</span> Ft. Collins, CO. <a
+href="https://doi.org/10.2737/RMRS-GTR-153">https://doi.org/10.2737/RMRS-GTR-153</a>.
+</div>
+<div id="ref-vagliolaurin2016" class="csl-entry">
+Vaglio Laurin, Gaia, Francesco Pirotti, Mattia Callegari, Qi Chen,
+Giovanni Cuozzo, Emanuele Lingua, Claudia Notarnicola, and Dario Papale.
+2016. <span>“Potential of ALOS2 and NDVI to Estimate Forest Above-Ground
+Biomass, and Comparison with Lidar-Derived Estimates.”</span> <em>Remote
+Sensing</em> 9 (1): 18. <a
+href="https://doi.org/10.3390/rs9010018">https://doi.org/10.3390/rs9010018</a>.
+</div>
+</div>
+</div>
 </div>
 
 
