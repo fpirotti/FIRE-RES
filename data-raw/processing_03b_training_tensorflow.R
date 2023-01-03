@@ -1,8 +1,6 @@
-library(ggplot2)
-library(data.table)
-library(foreach)
-library(h2o)
-library(doParallel);
+library(tensorflow)
+library(keras)
+library(tidyverse)
 
 
 ## data processing ----
@@ -45,7 +43,7 @@ for(tile in tiles$ID) {
 
   if(file.exists(path)){
     message("Model exists, skipping ", tile)
-    next
+    # next
   }
 
   message("doing ", tile)
@@ -98,7 +96,7 @@ for(tile in tiles$ID) {
   vv$lcv_landcover <-as.factor(vv$lcv_landcover)
   vv$VegHighestProb<-as.factor(vv$VegHighestProb)
 
-  df <- h2o::as.h2o(vv)
+  df <- vv
 
   y <- "agb"
   splits <- h2o.splitFrame(df, ratios = 0.75, seed = 1)
@@ -106,33 +104,10 @@ for(tile in tiles$ID) {
   test <- splits[[2]]
 
 
-  # aml2 <- h2o.automl(y = y,
-  #                    training_frame = train,
-  #                    max_models = 24,
-  #                    project_name = sprintf("%s_biomass_prediction_tile", tile))
-
-  # h2o.saveModel(object = aml2@leader, path = "output/models_v02",
-  #               filename =  sprintf("%s_biomass_prediction_model_tile", tile), force = TRUE)
-
-  aml2 <- h2o.loadModel(
-    path = file.path("output/models_v02",
-                     sprintf("%s_biomass_prediction_model_tile", tile)
-    ) )
-
-
-  modid <- as.data.frame((aml2@leaderboard$model_id ))
-  notstacked <- which( !grepl("Stacked", modid$model_id ) )
-  varimp[[tile]]<-list()
-  for(mod in notstacked){
-    modn <- modid$model_id[[mod]]
-    varimp[[tile]][[ modn ]] <- as.data.frame(h2o.varimp(h2o.getModel( modn ) ))
-  }
-
-  perf <- h2o.performance(aml2@leader, test)
-  # pred <- h2o.predict(aml2, test)
-  #
+  # perf <- h2o.performance(aml2@leader, test)
+  perf <- h2o.performance(aml2, test)
   metrics[[tile]] <- perf@metrics
-  saveRDS(metrics, "output/models_v02/metrics_v02.rds")
+  saveRDS(metrics, "output/models_v02_TF/metrics_v02.rds")
   saveRDS(varimp, "output/models_v02/varimp_v02.rds")
 }
 

@@ -270,7 +270,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Biomass estimation for FIRE-RES WP5.6</h1>
 <h4 class="author">Francesco Pirotti, Erico Kutchartt</h4>
-<h4 class="date">26 December, 2022</h4>
+<h4 class="date">31 December, 2022</h4>
 
 </div>
 
@@ -336,7 +336,9 @@ describing the input variables and the AI training phase,</p>
 <h1>Materials and Methods</h1>
 <div id="data" class="section level2">
 <h2>Data</h2>
-<p>The following data sources are used</p>
+<p>The following data sources are used. The main source was via Google
+Earth Engine (GEE) via the rgee package in R <span
+class="citation">(Aybar et al. 2020)</span></p>
 <div id="dependent-variables" class="section level3">
 <h3>Dependent variables</h3>
 <div id="above-ground-biomass" class="section level4">
@@ -502,13 +504,43 @@ Along with active remote sensing (SAR), good estimates can be achieved
 </ul></li>
 </ul>
 </div>
-<div id="alos-palsar2-radar" class="section level4">
-<h4>ALOS PALSAR2 RADAR</h4>
+<div id="radar" class="section level4">
+<h4>RADAR</h4>
+<div id="sentinel-1" class="section level5">
+<h5>Sentinel-1</h5>
+<p><a
+href="https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S1_GRD">LINK
+TO DATA HERE</a></p>
+<p>C-Band backscatter available from GEE pre-processed with Sentinel-1
+Toolbox for (i) thermal noise removal (ii) radiometric calibration (iii)
+terrain correction using SRTM 30 or ASTER DEM for areas greater than 60
+degrees latitude, where SRTM is not available. The final
+terrain-corrected values are converted to decibels via log scaling
+(10*log10(x)) . We then processed for correcting for incidence angle
+using <a
+href="https://developers.google.com/earth-engine/datasets/catalog/JAXA_ALOS_AW3D30_V3_2">ALOS
+3D</a> which has an accuracy &lt;10m for height values as well
+documented in literature (<a
+href="https://ieeexplore.ieee.org/document/7730400"
+class="uri">https://ieeexplore.ieee.org/document/7730400</a> - )</p>
+<p>Further processing was done to aggregate over time and space.
+Time-wise the Sentinel-1 backscatter from VV and VH polarizations were
+aggregated with median values over the summer months of the year 2020
+(01 June 2020 to 01 September 2020. This was done to minimize the
+effect, on backscatter RADAR values, of snow and ice in the canopy at
+higher elevation and on higher latitudes.</p>
+</div>
+<div id="alos-palsar" class="section level5">
+<h5>ALOS PALSAR</h5>
 <p><a
 href="https://developers.google.com/earth-engine/datasets/catalog/JAXA_ALOS_PALSAR_YEARLY_SAR">LINK
 TO DATA HERE</a></p>
-<p>SAR backscatter, corrected by incidence angle, is related to the
-amount of vegetation available in the illuminated area.</p>
+<p>SAR backscatter, corrected by incidence angle , is related to the
+amount of vegetation available in the illuminated area. We then process
+the data to gamma naught via log scaling 10*log10(DN) - this is to
+compare with Sentinel-1 values which are also corrected for incidence
+angle and converted to gamma naught with the same log scaling
+function.</p>
 <ul>
 <li>Year: 2020</li>
 <li>Resolution: 25 m</li>
@@ -518,8 +550,10 @@ amount of vegetation available in the illuminated area.</p>
 </ul></li>
 </ul>
 </div>
-<div id="srtm-elevation-grid" class="section level4">
-<h4>SRTM Elevation Grid</h4>
+</div>
+<div id="srtm-elevation-grid-removed---see-alos-3d-below"
+class="section level4">
+<h4>SRTM Elevation Grid (REMOVED - SEE ALOS 3D BELOW)</h4>
 <p><a
 href="https://developers.google.com/earth-engine/datasets/catalog/CGIAR_SRTM90_V4?hl=en"
 target="_blank">LINK TO DATA HERE</a></p>
@@ -529,6 +563,20 @@ target="_blank">LINK TO DATA HERE</a></p>
 <li>Layers:
 <ul>
 <li><strong>elevation</strong></li>
+</ul></li>
+</ul>
+</div>
+<div id="alos-3d-elevation-grid" class="section level4">
+<h4>ALOS 3D Elevation Grid</h4>
+<p><a
+href="https://developers.google.com/earth-engine/datasets/catalog/JAXA_ALOS_AW3D30_V3_2">LINK
+TO DATA HERE</a></p>
+<ul>
+<li><p>Year: 2011</p></li>
+<li><p>Resolution: 30 m</p></li>
+<li><p>Layers:</p>
+<ul>
+<li>elevation</li>
 </ul></li>
 </ul>
 </div>
@@ -608,11 +656,11 @@ and Burgan NB(1,2,3) etc…</p>
                     .multiply(LULC.neq(200)) // OCEAN  (NB8)</code></pre>
 <p>All data were reprojected to geographic WGS84 (EPSG:4326) coordinates
 with ≈100 m</p>
-<p>≈220’000 sample points were taken from the area by stratified
-sampling using, as strata, the 13 LULC classes and biomass classes at 10
-Mg/ha intervals, for a total of 48 biomass classes. This allowed for a
-balanced representation of different land use (shrub to thick forest)
-and of estimated biomass at pixel level.</p>
+<p>≈200’000 sample points for each tile were taken from the area by
+stratified sampling using, as strata, the 13 LULC classes and biomass
+classes at 10 Mg/ha intervals, for a total of 48 biomass classes. This
+allowed for a balanced representation of different land use (grassland
+to thick forest) and of estimated biomass at pixel level.</p>
 </div>
 </div>
 <div id="artificial-intelligence" class="section level2">
@@ -657,6 +705,22 @@ validating.</p>
 <img src="man/images/trainingPoints.jpg" width="913" alt="" />
 <p class="caption">Training points divided by tile</p>
 </div>
+<p>So to summarize, 50 features where used all resampled at 100 m
+resolution except the climatic features:</p>
+<ul>
+<li><p>19 climatic variables at 1 km resolution</p></li>
+<li><p>1 topographic feature, Earth surface elevation from ALOS</p></li>
+<li><p>2 canopy features, canopy height and canopy cover
+fraction</p></li>
+<li><p>2 vegetation indices EVI and NDVI from Landsat 8</p></li>
+<li><p>5 Land Cover maps, 1 providing a land cover class and 4 with
+fractions of vegetation classes (forest, shrubland, grassland and
+agriculture),</p></li>
+<li><p>4 RADAR backscatter features, 2 from ALOS and 2 Sentinel-1,
+co-polarized and cross-polarized</p></li>
+<li><p>16 vegetation types + 1 overall vegetation class of type with
+highest probability</p></li>
+</ul>
 <p>The plot below shows the relation between the variables and the
 biomass.</p>
 <p><img src="man/images/variables.jpg" id="id1" style="width:500px;"/></p>
@@ -677,6 +741,12 @@ samples</strong> are used for training.</p>
 combined holdout predictions) provided the following performance metrics
 for biomass (Mg/ha):</p>
 <p>MSE: | 1372 RMSE: | 37.1 MAE: | 24.7</p>
+<div class="figure">
+<img src="man/images/MetricsDifferenceGrey.png" alt="" />
+<p class="caption">RMSE of different tiles compared between using less
+features and all features (49) which include 4 RADAR and new land cover
+and vegetation types</p>
+</div>
 <div id="variable-importance" class="section level3">
 <h3>Variable importance</h3>
 <p>The plots below are variable importance from the random forest and
@@ -687,9 +757,10 @@ methods.</p>
 </div>
 <div id="testing-ai" class="section level2">
 <h2>Testing AI</h2>
-<p>Testing on an independent set of 140’000 points, sampled just like
-the training points (stratified the same way), provided the following
-performance metrics for biomass (Mg/ha):</p>
+<p>Testing was done by keeping a random sample of 25% of points on an
+independent set of 140’000 points, sampled just like the training points
+(stratified the same way), provided the following performance metrics
+for biomass (Mg/ha):</p>
 <p>MSE: | 1421 RMSE: | 38.7 MAE: | 25.6</p>
 <p><img src="man/images/performance.png" id="id2" style="width:500px;"/><br />
 <label > </label></p>
@@ -760,6 +831,11 @@ reference frame for future developments outside Europe.</li>
 <div id="ref-annoni2001" class="csl-entry">
 Annoni, A, C Luzet, E Gubler, and J Ihde. 2001. <span>“Map Projections
 for Europe.”</span>
+</div>
+<div id="ref-aybar2020" class="csl-entry">
+Aybar, Cesar, Quisheng Wu, Lesly Bautista, Roy Yali, and Antony Barja.
+2020. <span>“Rgee: An r Package for Interacting with Google Earth
+Engine.”</span> <em>Journal of Open Source Software</em>.
 </div>
 <div id="ref-santoro2021" class="csl-entry">
 Santoro, Maurizio, and Oliver Cartus. 2021b. <span>“ESA Biomass Climate
