@@ -26,10 +26,17 @@ nrow(tiles)
 vt<-terra::rast(vegType)
 
 res <- foreach(i = 1:4) %do% {
-  tile <- tiles$code[[i]]
+
+   tile <- tiles$code[[i]]
    input.raster <- terra::rast( sprintf("output/allEU/biomassMapTiles_3035/bm_%s.tif", tile) )
    vegType.t <- terra::resample( vegType, input.raster)
    canopyHeight.t <- terra::resample( canopyHeight, input.raster)
+
+   lc_esa.t <-  terra::resample( lc_esa, input.raster)
+   lc_hcl.t <-  terra::resample( lc_hcl, input.raster)
+
+   plot(lc_esa.t)
+   plot(lc_hcl.t)
 
   plot(output.raster)
   if(file.exists(sprintf("output/allEU/fractionLeafBiomassMapTiles_3035/bmfr_%s.tif", tile))){

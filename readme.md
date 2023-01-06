@@ -1,7 +1,7 @@
 Biomass estimation for FIRE-RES WP5.6
 ================
 Francesco Pirotti, Erico Kutchartt
-20 December, 2022
+24 December, 2022
 
 <style>
 .zoomDiv {
@@ -184,7 +184,9 @@ HERE](https://developers.google.com/earth-engine/datasets/catalog/VITO_PROBAV_C1
 info](https://proba-v.vgt.vito.be/sites/proba-v.vgt.vito.be/files/products_user_manual.pdf)
 
 NDVI is well-known to be related to biomass values, even if the
-prediction efficiency decreases at higher biomass values.
+prediction efficiency decreases drastically at higher biomass values.
+Along with active remote sensing (SAR), good estimates can be achieved
+\[4\]
 
 - Year: 2020
 - Composite of cloudless imagery with MAX NDVI value
@@ -285,17 +287,28 @@ intervals, for a total of 48 biomass classes. This allowed for a
 balanced representation of different land use (shrub to thick forest)
 and of estimated biomass at pixel level.
 
+## Artificial Intelligence
+
+We used ensemble of machine learning methods from R-CRAN “h2o” library
+\[@h2o_DL_booklet; @h2o_R\_package\], using a rich set of descriptors.
+
 ## Training AI
 
-Biomass ground truth data are not easily reached due to the very
-different sampling protocols and many countries not providing the
-information as open data.
+AGB data are not easily acquired as ground truth requires measuring in
+the field dendrometric variables (DBH and tree heights) over a large
+area, and then applying the necessary biomass models **(citation here)**
+to convert these to AGB. Commonly forest plots are circular and much
+smaller than the 1 ha unit that is the average resolution of the AGB
+map.
 
-Some dedicated EU projects, such as GLOBIOMASS, were funded with the
-main goal to create biomass maps. We therefore decided to use these maps
-for training an ensemble of machine learning methods using as
-descriptors the data-rich environment from the above-listed data, **for
-a total of 27 variables as features**.
+Also the sampling protocols are different from country to country, and
+national inventories are carried out at different times. Another factor
+to is that many countries are not providing the information as open
+data.
+
+Some dedicated EU projects **(other projects here)**, such as
+GLOBIOMASS, were funded with the main goal to create biomass maps. We
+therefore decided to use these maps for training.
 
 The plot below shows the relation between the variables and the biomass.
 
@@ -307,8 +320,12 @@ CEDA biomass map. By collecting a large number of samples from the area
 with stratified sampling that accounts for land-cover type and biomass
 class, we will augment available training data from ground samples.
 
-The continous biomass variable values were grouped in 10 classes each of
-size 50 Mg/ha to provide a stratified sampling that represent evenly
+## Sampling design for TRAINING
+
+Training requires values of AGB values of the Over all Europe,
+
+The continuous biomass variable values were grouped in 10 classes each
+of size 50 Mg/ha to provide a stratified sampling that represent evenly
 different biomass profiles. A total of **260’000 samples** are used for
 training.
 
@@ -364,6 +381,15 @@ Climate (CEDA)</a>
 
 ## Problems and solutions
 
+### Alignment
+
+Cropping, clipping and reprojecting often leads to misalignment of
+raster grid, adding uncertainty to data spatial relationship - see image
+below. To avoid this, care must be applied when using such tools to keep
+the same reference grid.
+
+<img  id="id8" src="man/images/misalignment.png" style="width:500px;" />
+
 ### Data size
 
 Maximum size of data tables in R is about 2 billion elements. A 100 m
@@ -396,3 +422,9 @@ Commission Joint Research Centre, reference EUR 20120 EN, 2003
 Open Environmental Data Cube Europe, co-financed under Grant Agreement
 Connecting Europe Facility (CEF) Telecom project 2018-EU-IA-0095 by the
 European Union.
+
+\[4\] Vaglio Laurin, G.; Pirotti, F.; Callegari, M.; Chen, Q.; Cuozzo,
+G.; Lingua, E.; Notarnicola, C.; Papale, D. Potential of ALOS2 and NDVI
+to Estimate Forest Above-Ground Biomass, and Comparison with
+Lidar-Derived Estimates. Remote Sens. 2017, 9, 18.
+<https://doi.org/10.3390/rs9010018>
