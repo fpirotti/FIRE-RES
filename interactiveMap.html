@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<base target="_top">
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<title>FIRE-RES MAPS</title>
+
+	<link rel="icon" href="man/images/FireRes32x32.png" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"  crossorigin="anonymous"></script>
+
+<script src="Bing.js"></script>
+	<style>
+		html, body {
+			height: 100%;
+			margin: 0;
+		}
+		.leaflet-container {
+			height: 400px;
+			width: 600px;
+			max-width: 100%;
+			max-height: 100%;
+		}
+	</style>
+
+	<style>#map { width: 600px; height: 500px; display: inline-block;     vertical-align: bottom; }
+.info { padding: 6px 8px; font: 14px/16px Arial, Helvetica, sans-serif; background: white; background: rgba(255,255,255,0.8); box-shadow: 0 0 15px rgba(0,0,0,0.2); border-radius: 5px; } .info h4 { margin: 0 0 5px; color: #777; }
+.legend { text-align: left; line-height: 18px; color: #555; } .legend i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.7; }</style>
+</head>
+<body style="padding:10px;font-family: sans-serif;">
+
+<img src="man/images/FireRes_logo.png" style="width: 200px; float:left;" />
+<h2>BIOMASS AND FUEL MAP OF EUROPE AT 100 m x 100 m RESOLUTION</h2>
+This map was created for the xx.... using Stacked Ensembles Machine learners.
+ You can download single tiles or use the WMS or WCS service below.
+ Biomass is reported in Mg / ha. The original coordinate reference system is epsg=3035
+
+<div class='parent'>
+  <div id='map'></div>
+  <div id='mapinfo' style='display: inline-block; border:1px solid black; width: 600px;height: 500px;'>DATA:</div>
+</div>
+
+<script type="text/javascript" src="output/allEU/biomassMapTiles_3035/allFilledTiles4326.json"></script>
+
+<script type="text/javascript">
+
+
+	const map = L.map('map').setView([51, 11], 3);
+
+
+	const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+		maxZoom: 19,
+		zIndex:2,
+		attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+	}) .addTo(map);
+
+
+  const biomasMap =  L.tileLayer('https://www.cirgeo.unipd.it/mapproxy/tms/1.0.0/fire-res/webmercator/{z}/{x}/{y}.png', {
+		maxZoom: 19, tms:true, zoomOffset:-1,
+		attribution: '<a href="https://fire-res.eu" target=_blank>&copy; 022 FIRE-RES"</a>'
+	}).addTo(map);
+
+  const bing = new L.BingLayer("AjvjPYuoA4IgNeooKvodDLcxbVL1F8RdIxXUeYsb6PgiVapURz_PbbWvOxVKmNps", {
+		zIndex:3 });
+
+	// control that shows state info on hover
+	const info = L.control({position:"bottomleft"});
+
+	info.onAdd = function (map) {
+		this._div = L.DomUtil.create('div', 'info');
+		this.update();
+		return this._div;
+	};
+
+	info.update = function (props) {
+		const contents = props ? `<b>${props.code}</b>  tile ID` : 'Hover over a tile to see code - click to download raster with biomass';
+		this._div.innerHTML = `<h4>Biomass Map</h4>${contents}`;
+	};
+
+
+	info.addTo(map);
+
+
+	function style(feature) {
+		return {
+			weight: 0.4,
+			opacity: 1,
+			color: 'red',
+		//	dashArray: '3',
+			fillOpacity: 0.1,
+			 fillColor:'red'
+		};
+	}
+
+	function downloadFeature(e) {
+    const layer = e.target;
+    url = "output/allEU/biomassMapTiles_3035/bm_"+layer.feature.properties.code+".tif";
+    var richiesta = window.confirm("Do you want to download tile "+layer.feature.properties.code+"?");
+    if(richiesta) document.getElementById('my_iframe').src = url;
+	}
+
+	function highlightFeature(e) {
+		const layer = e.target;
+		layer.setStyle({
+			weight: 2,
+			color: '#666',
+			dashArray: '',
+			fillOpacity: 0.7
+		});
+
+		layer.bringToFront();
+
+		info.update(layer.feature.properties);
+	}
+
+	/* global tilesData */
+	const geojson = L.geoJson(allTiles4326, {
+		style,
+		onEachFeature
+	})
+
+	function resetHighlight(e) {
+		geojson.resetStyle(e.target);
+		info.update();
+	}
+
+	function zoomToFeature(e) {
+		map.fitBounds(e.target.getBounds());
+	}
+
+	function onEachFeature(feature, layer) {
+		layer.on({
+			mouseover: highlightFeature,
+			mouseout: resetHighlight,
+			click: downloadFeature
+		});
+	}
+
+
+	const legend = L.control({position: 'bottomright'});
+
+	legend.onAdd = function (map) {
+
+		const div = L.DomUtil.create('div', 'info legend');
+		const grades = [0, 70,140, 210, 280, 350];
+		const labels = [];
+		const back = ["#000004FF", "#3B0F70FF", "#8C2981FF", "#DE4968FF", "#FE9F6DFF", "#FCFDBFFF"];
+		let from, to;
+
+		for (let i = 0; i < grades.length; i++) {
+			from = grades[i];
+			to = grades[i + 1];
+			col = back[i];
+
+			labels.push(`<i style="background:${col}"></i> ${from}${to ? `&ndash;${to}` : '+'}`);
+		}
+
+		div.innerHTML = "Biomass in Mg/ha:<br>"+labels.join('<br>');
+		return div;
+	};
+
+
+	legend.addTo(map);
+
+
+  function onClick(e){
+    var latmin = e.latlng.lat - 0.0001;
+    var latmax = e.latlng.lat + 0.0001;
+    var lngmin = e.latlng.lng - 0.0001;
+    var lngmax = e.latlng.lng + 0.0001;
+    var bbox = lngmin + ',' + latmin  + ',' + lngmax  + ',' + latmax;
+
+    $('#mapinfo').html( "Lat.=" + Math.round(e.latlng.lat*1000000)/1000000 + " Long.=" + Math.round(e.latlng.lng*1000000)/1000000 + "<br><div id='rom' style='font-size:smaller;'><img  src='loader.svg' style='vertical-align:middle;' />querying layers from server...</div>");
+    var url = "https://www.cirgeo.unipd.it/cgi-bin/qgis_mapserv.fcgi?map=/archivio/shared/R/FIRE-RES/fire_res_ows.qgz&service=WMS&version=1.1.1&srs=EPSG:4326&request=GetFeatureInfo&query_layers=allTilesBiomass3035,FEATURES&x=1&y=1&width=3&height=3&info_format=application/json&bbox="+bbox;
+
+
+    $.get( url, function( data ) {
+      $("#rom").hide();
+      $( "#mapinfo" ).append( "<br>Biomass : "+data.features[0].properties["Band 1"] + " Mg/ha" );
+    console.log(data);
+    });
+
+  }
+
+  function onOverlayAdd(e){
+      e.layer.bringToBack()
+  }
+
+  map.on({'baselayerchange': onOverlayAdd,
+          'click': onClick });
+
+	const baseLayers = {
+		'OpenStreetMap': osm,
+		'Bing': bing
+	};
+
+	const overlays = {
+		'Biomass Map': biomasMap,
+		'Tiles': geojson
+	};
+
+	const layerControl = L.control.layers(baseLayers, overlays, {collapsed:false, autoZIndex : true});
+	layerControl.addTo(map);
+
+</script>
+
+<iframe id="my_iframe" style="display:none;"></iframe>
+
+
+</body>
+</html>
