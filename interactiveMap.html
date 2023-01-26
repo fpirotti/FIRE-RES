@@ -13,6 +13,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"  crossorigin="anonymous"></script>
 
 <script src="Bing.js"></script>
+<script src="myfunc.js"></script>
 	<style>
 		html, body {
 			height: 100%;
@@ -26,26 +27,35 @@
 		}
 	</style>
 
-	<style>#map { width: 600px; height: 500px; display: inline-block;     vertical-align: bottom; }
+	<style>#map { width: 600px; height: 500px; display: inline-block;     vertical-align: top; }
 .info { padding: 6px 8px; font: 14px/16px Arial, Helvetica, sans-serif; background: white; background: rgba(255,255,255,0.8); box-shadow: 0 0 15px rgba(0,0,0,0.2); border-radius: 5px; } .info h4 { margin: 0 0 5px; color: #777; }
-.legend { text-align: left; line-height: 18px; color: #555; } .legend i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.7; }</style>
+.legend { text-align: left; line-height: 18px; color: #555; } .legend i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.7; } #mapinfo:before {
+    content: "";   position: absolute;  z-index: -1;
+    top: 0;   bottom: 0;  left: 0; right: 0;
+    background: url("man/images/FireRes_logo.png") center top;
+    background-repeat:no-repeat;  background-size: 400px 100px;
+    opacity: .1;
+}</style>
 </head>
 <body style="padding:10px;font-family: sans-serif;">
 
-<img src="man/images/FireRes_logo.png" style="width: 200px; float:left;" />
 <h2>BIOMASS AND FUEL MAP OF EUROPE AT 100 m x 100 m RESOLUTION</h2>
-This map was created for the xx.... using Stacked Ensembles Machine learners.
+This map was created for the FIRE-RES EU project. using Stacked Ensembles of Machine Learners.
  You can download single tiles or use the WMS or WCS service below.
- Biomass is reported in Mg / ha. The original coordinate reference system is epsg=3035
+ Biomass is reported in Mg / ha.
 
 <div class='parent'>
   <div id='map'></div>
-  <div id='mapinfo' style='display: inline-block; border:1px solid black; width: 600px;height: 500px;'>DATA:</div>
-</div>
+  <div id='mapinfo' class="info" style='   position: relative;   z-index: 1; padding:5px;overflow-y: scroll;  display: inline-block;  width: 600px; max-height: 500px;  min-height: 300px;'>
+    <div id='mapinfo2' ></div><br><div id='mapinfo_download' ></div>
+  <div id='mapinfo3' ></div>
 
+</div>
+</div>
 <script type="text/javascript" src="output/allEU/biomassMapTiles_3035/allFilledTiles4326.json"></script>
 
 <script type="text/javascript">
+
 
 
 	const map = L.map('map').setView([51, 11], 3);
@@ -63,25 +73,21 @@ This map was created for the xx.... using Stacked Ensembles Machine learners.
 		attribution: '<a href="https://fire-res.eu" target=_blank>&copy; 022 FIRE-RES"</a>'
 	}).addTo(map);
 
+  const biomasMap_ffr =  L.tileLayer('https://www.cirgeo.unipd.it/mapproxy/tms/1.0.0/fire-res-ffr/webmercator/{z}/{x}/{y}.png', {
+		maxZoom: 19, tms:true, zoomOffset:-1,
+		attribution: '<a href="https://fire-res.eu" target=_blank>&copy; 022 FIRE-RES"</a>'
+	}).addTo(map);
+
   const bing = new L.BingLayer("AjvjPYuoA4IgNeooKvodDLcxbVL1F8RdIxXUeYsb6PgiVapURz_PbbWvOxVKmNps", {
 		zIndex:3 });
 
-	// control that shows state info on hover
-	const info = L.control({position:"bottomleft"});
-
-	info.onAdd = function (map) {
-		this._div = L.DomUtil.create('div', 'info');
-		this.update();
-		return this._div;
-	};
-
-	info.update = function (props) {
-		const contents = props ? `<b>${props.code}</b>  tile ID` : 'Hover over a tile to see code - click to download raster with biomass';
-		this._div.innerHTML = `<h4>Biomass Map</h4>${contents}`;
+	info_update = function (props) {
+		const contents = props ? '<b>tile ID: '+props.code+'</b>- click to download.' : 'View and click on a tile to see tile ID and download raster with biomass.<br>Click on biomass map to get information.';
+		$('#mapinfo2').html('<h4>Biomass Map</h4>'+contents);
 	};
 
 
-	info.addTo(map);
+//	info.addTo(map);
 
 
 	function style(feature) {
@@ -96,10 +102,10 @@ This map was created for the xx.... using Stacked Ensembles Machine learners.
 	}
 
 	function downloadFeature(e) {
-    const layer = e.target;
+		const layer = e.target;
     url = "output/allEU/biomassMapTiles_3035/bm_"+layer.feature.properties.code+".tif";
-    var richiesta = window.confirm("Do you want to download tile "+layer.feature.properties.code+"?");
-    if(richiesta) document.getElementById('my_iframe').src = url;
+    document.getElementById("my_iframe").src=url;
+       L.DomEvent.stopPropagation(e);
 	}
 
 	function highlightFeature(e) {
@@ -111,9 +117,8 @@ This map was created for the xx.... using Stacked Ensembles Machine learners.
 			fillOpacity: 0.7
 		});
 
+		info_update(layer.feature.properties);
 		layer.bringToFront();
-
-		info.update(layer.feature.properties);
 	}
 
 	/* global tilesData */
@@ -124,7 +129,7 @@ This map was created for the xx.... using Stacked Ensembles Machine learners.
 
 	function resetHighlight(e) {
 		geojson.resetStyle(e.target);
-		info.update();
+		info_update();
 	}
 
 	function zoomToFeature(e) {
@@ -146,19 +151,22 @@ This map was created for the xx.... using Stacked Ensembles Machine learners.
 
 		const div = L.DomUtil.create('div', 'info legend');
 		const grades = [0, 70,140, 210, 280, 350];
+		const grades_ffr = [0, 2.6, 5.2, 7.8, 10.4, 13];
 		const labels = [];
 		const back = ["#000004FF", "#3B0F70FF", "#8C2981FF", "#DE4968FF", "#FE9F6DFF", "#FCFDBFFF"];
 		let from, to;
 
 		for (let i = 0; i < grades.length; i++) {
 			from = grades[i];
+			from_ffr = grades_ffr[i];
 			to = grades[i + 1];
+			to_ffr = grades_ffr[i+1];
 			col = back[i];
 
-			labels.push(`<i style="background:${col}"></i> ${from}${to ? `&ndash;${to}` : '+'}`);
+			labels.push(`<i style="background:${col}"></i> ${from}${to ? `&ndash;${to}` : '+'} | ${from_ffr}${to_ffr ? `&ndash;${to_ffr}` : '+'}`);
 		}
 
-		div.innerHTML = "Biomass in Mg/ha:<br>"+labels.join('<br>');
+		div.innerHTML = "Biomass | FFr Biomass in Mg/ha:<br>"+labels.join('<br>');
 		return div;
 	};
 
@@ -173,13 +181,72 @@ This map was created for the xx.... using Stacked Ensembles Machine learners.
     var lngmax = e.latlng.lng + 0.0001;
     var bbox = lngmin + ',' + latmin  + ',' + lngmax  + ',' + latmax;
 
-    $('#mapinfo').html( "Lat.=" + Math.round(e.latlng.lat*1000000)/1000000 + " Long.=" + Math.round(e.latlng.lng*1000000)/1000000 + "<br><div id='rom' style='font-size:smaller;'><img  src='loader.svg' style='vertical-align:middle;' />querying layers from server...</div>");
-    var url = "https://www.cirgeo.unipd.it/cgi-bin/qgis_mapserv.fcgi?map=/archivio/shared/R/FIRE-RES/fire_res_ows.qgz&service=WMS&version=1.1.1&srs=EPSG:4326&request=GetFeatureInfo&query_layers=allTilesBiomass3035,FEATURES&x=1&y=1&width=3&height=3&info_format=application/json&bbox="+bbox;
+    $('#mapinfo3').html( "Lat.=" + Math.round(e.latlng.lat*1000000)/1000000 + " Long.=" + Math.round(e.latlng.lng*1000000)/1000000 + "<br><div id='rom' style='font-size:smaller;'><img  src='loader.svg' style='vertical-align:middle;' />querying layers from server...</div>");
+
+    var url = "https://www.cirgeo.unipd.it/cgi-bin/qgis_mapserv.fcgi?map=/archivio/shared/R/FIRE-RES/fire_res_ows.qgz&service=WMS&version=1.1.1&srs=EPSG:4326&request=GetFeatureInfo&query_layers=Biomass_2020,Biomass_ffr_2020,FEATURES&x=1&y=1&width=3&height=3&info_format=application/json&bbox="+bbox;
+
+ var kml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> ";
+     kml += "<kml xmlns=\"http://www.opengis.net/kml/2.2\">";
+     kml += " <Placemark>";
+     kml += "  <name>Biomass</name>";
+     kml += " <Polygon>";
+     kml += "      <extrude>1</extrude>";
+     kml += "      <altitudeMode>relativeToGround</altitudeMode>";
+     kml += "      <outerBoundaryIs>";
+     kml += "        <LinearRing>";
+     kml += "          <coordinates>";
+     kml += "            "+lngmin+","+latmin+",1 ";
+     kml += "            "+lngmin+","+latmax+",1 ";
+     kml += "            "+lngmax+","+latmax+",1 ";
+     kml += "            "+lngmax+","+latmin+",1 ";
+     kml += "            "+lngmin+","+latmin+",1 ";
+     kml += "          </coordinates>";
+     kml += "        </LinearRing>";
+     kml += "      </outerBoundaryIs> ";
+     kml += "    </Polygon>";
+     kml += "  </Placemark>";
+     kml += "</kml>";
+
 
 
     $.get( url, function( data ) {
       $("#rom").hide();
-      $( "#mapinfo" ).append( "<br>Biomass : "+data.features[0].properties["Band 1"] + " Mg/ha" );
+
+//    $('#mapinfo3').html( "Lat.=" + Math.round(e.latlng.lat*100000)/100000 + " Long.=" + Math.round(e.latlng.lng*1000000)/1000000 + "<a id='downloadlink' target=_blank download=biomass"+Math.round(e.latlng.lat*1000)+"_"+Math.round(e.latlng.lng*1000)+".kml>Download KML</a><br>");
+
+    var link = document.getElementById('downloadlink');
+    link.href = makeTextFile(kml);
+    link.style.display = 'block';
+
+      $.each(data.features, function( index, value ) {
+            var siz = Object.keys(value.properties).length ;
+            if( siz ==1) {
+               $( "#mapinfo3" ).append( "<br>"+ value.id + ": "    );
+               if(value.id=="Biomass_2020") $( "#mapinfo3" ).append(value.properties["Band 1"] +" Mg/ha");
+               if(value.id=="Biomass_ffr_2020") $( "#mapinfo3" ).append(value.properties["Band 1"] +" Mg/ha");
+                if(value.id=="NDVI_95th_Perc" || value.id=="EVI_95th_Perc") $( "#mapinfo3" ).append( Number(value.properties["Band 1"])/10000 );
+               if(value.id=="Forest_Cover_Hansen") $( "#mapinfo3" ).append(value.properties["Band 1"] +" %");
+               if(value.id=="Forest_Loss_Year_Hansen") {
+                 if(value.properties["Band 1"]==="null") $( "#mapinfo3" ).append(" None ");
+                 else $( "#mapinfo3" ).append("20" + value.properties["Band 1"].padStart(2,'0') +"");
+               }
+               if(value.id=="Canopy_Height_ETH") $( "#mapinfo3" ).append(value.properties["Band 1"] +" m");
+
+
+            } else if( siz >9) {
+                 $( "#mapinfo3" ).append( "<br>Species with higher probability: "+  species[ Number(value.properties["Band 01"])-1  ] );
+                 var ccc=0;
+                 delete value.properties["Band 01"];
+                 $.each(value.properties, function(index2,value2){
+
+                     $( "#mapinfo3" ).append( "<br> -- " +  species[ ccc] +  ": " +  Number(value2 ) + "%"  );
+                     ccc=ccc+1;
+                 });
+            } else {
+                 $( "#mapinfo3" ).append( "<br>"+ value.id + ": " + value.properties["Band 1"]  );
+            }
+      });
+
     console.log(data);
     });
 
@@ -199,12 +266,13 @@ This map was created for the xx.... using Stacked Ensembles Machine learners.
 
 	const overlays = {
 		'Biomass Map': biomasMap,
+		'Biomass FFr Map':	biomasMap_ffr,
 		'Tiles': geojson
 	};
 
 	const layerControl = L.control.layers(baseLayers, overlays, {collapsed:false, autoZIndex : true});
 	layerControl.addTo(map);
-
+  info_update();
 </script>
 
 <iframe id="my_iframe" style="display:none;"></iframe>
