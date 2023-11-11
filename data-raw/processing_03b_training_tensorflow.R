@@ -14,13 +14,10 @@ tiles <- sf::read_sf("data-raw/tiles/bigTiles.gpkg")
 AGB_2018 <- terra::rast("/archivio/shared/geodati/raster/AGB/ESA2018/ESACCI-BIOMASS_L4_AGB_2018_v3_int16_europe.tif")
 AGB_2018_e <- terra::rast("/archivio/shared/geodati/raster/AGB/ESA2018/ESACCI_BIOMASS_L4_AGB_StdDev_2018_v3_int16_europe.tif")
 
-res <- readRDS("output/trainingTestingMatrixCoords.rds")
+#res <- readRDS("output/trainingTestingMatrixCoords.rds")
 
 source("data-raw/processing_00_constants.R")
 
-library(h2o)
-h2o.init()
-h2o.no_progress()
 
 metrics<-list()
 varimp <-list()
@@ -38,7 +35,7 @@ for(tile in tiles$ID) {
     next
   }
 
-  path = file.path("output/models_v02",
+  path = file.path("output/models_keras",
                    sprintf("%s_biomass_prediction_model_tile", tile) )
 
   if(file.exists(path)){
@@ -54,9 +51,9 @@ for(tile in tiles$ID) {
     next
   }
 
-  firstext <- ext(terra::rast(features[[1]]))
+  firstext <- terra::ext(terra::rast(features[[1]]))
   for(ntmppp in features) {
-    te<- ext(terra::rast(ntmppp))
+    te<- terra::ext(terra::rast(ntmppp))
     if(te!=firstext && basename(ntmppp)!="bioclim.tif"){
       message(tile, " not equal ", ntmppp)
     }
@@ -74,15 +71,14 @@ for(tile in tiles$ID) {
   res.final <-res.final1[ vv.tmp$ID[ vv.tmp$lossyear < 17 ], ]
   message("Tile ", tile, " - Keeping post loss&Null-for-LC = ", as.integer( nrow(res.final)/nrow(res[[tile]])*100) , "%")
 
-
-  vv <-  terra::extract(AGB_2018,res.final)
-  vv$ID<-NULL
+  vv <-  terra::extract(AGB_2018,res.final, ID=FALSE)
+  # vv$ID<-NULL
   features <- features[-ly]
   for(feat in features){
     tmp <- terra::rast(feat)
 
-      vv.temp <- terra::extract(tmp,res.final)
-      vv.temp$ID<-NULL
+      vv.temp <- terra::extract(tmp,res.final, ID=FALSE)
+      # vv.temp$ID<-NULL
       if( length(names(vv.temp))==1 ){
         bn <- basename(feat)
         raster::extension(bn)<-""
@@ -99,10 +95,21 @@ for(tile in tiles$ID) {
   df <- vv
 
   y <- "agb"
-  splits <- h2o.splitFrame(df, ratios = 0.75, seed = 1)
-  train <- splits[[1]]
-  test <- splits[[2]]
 
+  browser()
+
+  model = keras_model_sequential() %>%
+    layer_dense(units=64, activation="relu", input_shape=3) %>%
+    layer_dense(units=32, activation = "relu") %>%
+    layer_dense(units=1, activation="linear")
+
+  model %>% compile(
+    loss = "mse",
+    optimizer =  "adam",
+    metrics = list("mean_absolute_error")
+  )
+
+  model %>% summary()
 
   # perf <- h2o.performance(aml2@leader, test)
   perf <- h2o.performance(aml2, test)

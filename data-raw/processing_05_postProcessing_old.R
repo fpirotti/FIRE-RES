@@ -9,29 +9,28 @@ library(doParallel)
 source("data-raw/processing_00_constants.R")
 
 
-# tiles <- sf::read_sf("data-raw/tiles/adm_tiling.system_30km_m_1m_s0..0m_2020_eumap_epsg3035_v0.1.gpkg")
-#
-# st_crs(tiles)<-3035
-#
-# AGB_2018 <- terra::rast("/archivio/shared/geodati/raster/AGB/ESA2018/ESACCI-BIOMASS_L4_AGB_2018_v3_int16_europe.tif")
-# AGB_2018_e <- terra::rast("/archivio/shared/geodati/raster/AGB/ESA2018/ESACCI_BIOMASS_L4_AGB_StdDev_2018_v3_int16_europe.tif")
-#
+tiles <- sf::read_sf("data-raw/tiles/adm_tiling.system_30km_m_1m_s0..0m_2020_eumap_epsg3035_v0.1.gpkg")
 
-#
-# metrics<- list()
+st_crs(tiles)<-3035
+
+AGB_2018 <- terra::rast("/archivio/shared/geodati/raster/AGB/ESA2018/ESACCI-BIOMASS_L4_AGB_2018_v3_int16_europe.tif")
+AGB_2018_e <- terra::rast("/archivio/shared/geodati/raster/AGB/ESA2018/ESACCI_BIOMASS_L4_AGB_StdDev_2018_v3_int16_europe.tif")
+
+
+
+metrics<- list()
 
 #h2o.clusterStatus()
-# grid.coords <- sf::st_coordinates( ( sf::st_centroid(tiles$geom) ) )
-#
-# rowl <- sort(unique(grid.coords[,1]) )
-# coll <- sort(unique(grid.coords[,2]) )
-#
-# code <- paste( substr(grid.coords[,1], 1,3) , substr(grid.coords[,2], 1,3), sep="_")
-# code2 <- unique(code)
-# tiles$code <- code
+grid.coords <- sf::st_coordinates( ( sf::st_centroid(tiles$geom) ) )
+
+rowl <- sort(unique(grid.coords[,1]) )
+coll <- sort(unique(grid.coords[,2]) )
+
+code <- paste( substr(grid.coords[,1], 1,3) , substr(grid.coords[,2], 1,3), sep="_")
+code2 <- unique(code)
+tiles$code <- code
 
 biomass.rasters <- list.files("output/allEU/biomassMap_v03", pattern="\\.tif$", full.names = TRUE)
-biomass.raster.final  <- terra::rast("output/allEU/biomassMap_v03.tif")
 
 # for(i in biomass.rasters){
 #   tr <- terra::rast(i)
@@ -42,48 +41,15 @@ biomass.raster.final  <- terra::rast("output/allEU/biomassMap_v03.tif")
 #                      datatype = "INT2S")
 # }
 
-biomass.rasters.extents <- Map(function(x){ (sf::st_as_sf(terra::as.polygons(terra::ext(terra::rast(x)), crs="EPSG:4326")) ) }, biomass.rasters)
+biomass.rasters.extents <- Map(function(x){ sf::st_as_sf(terra::as.polygons(terra::ext(terra::rast(x)), crs="EPSG:4326")) }, biomass.rasters)
 
 extents.rasters <- sf::st_sf(dplyr::bind_rows(biomass.rasters.extents), crs=4326)
 extents.rasters$paths <- names(biomass.rasters.extents)
 
 # extents.rasters.30325 <- sf::st_transform( extents.rasters$geometry, crs=3035 )
 
-tile.overlap<- ( (sf::st_intersects(extents.rasters,extents.rasters) ) )
+tile.overlap<- ( (sf::st_intersects(tiles,extents.rasters.30325) ) )
 
-
-for(nrast  in 1:length(biomass.rasters)){
-  print("ddddd")
-  mainrast <- terra::rast(biomass.rasters[[nrast]])
-
-  print(nrast)
-  overlaps <- setdiff(tile.overlap[[nrast]], nrast)
-  # if(length(overlaps))
-  xym <- terra::xyFromCell(mainrast, terra::cells(mainrast) )
-  for(i in overlaps){
-    slaverast <- terra::rast(biomass.rasters[[ overlaps[[i]] ]])
-    xy <- terra::xyFromCell(slaverast, terra::cells(slaverast) )
-    matchy <- (xy[,2] %in% xym[,2])
-    matchx <- (xy[,1] %in% xym[,1])
-    matchall <- which(matchx & matchy)
-    matchys <- (xym[,2] %in% xy[,2])
-    matchxs <- (xym[,1] %in% xy[,1])
-    matchalls <- which(matchxs & matchys)
-    print(length(matchall))
-    slavecells <- terra::cellFromXY(slaverast, xy[matchall,])
-    mastercells <- terra::cellFromXY(mainrast, xym[matchalls,])
-
-    print("111")
-    supermastercells <- terra::cellFromXY(biomass.raster.final, xym[matchalls,])
-    biomass.raster.final$biomassMap_v03_1[supermastercells]
-    vals.slave <- slaverast[slavecells][[1]]
-    vals.master <- mainrast[mastercells][[1]]
-    print("ddddd")
-    browser()
-    print("ddddd")
-    biomass.raster.final[supermastercells] <- (vals.slave+vals.master)/2
-  }
-}
 
 
 names(tile.overlap)<- tiles$code

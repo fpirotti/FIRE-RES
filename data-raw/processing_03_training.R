@@ -29,6 +29,7 @@ varimp <-list()
 
 if(file.exists("output/models_v02/metrics_v02.rds")) metrics<-readRDS("output/models_v02/metrics_v02.rds")
 
+tile <- "D2"
 for(tile in tiles$ID) {
 
   if( is.element(tile, nonfare ) ){
@@ -40,7 +41,7 @@ for(tile in tiles$ID) {
     next
   }
 
-  path = file.path("output/models_v02",
+  path = file.path("output/models_v02_mojo",
                    sprintf("%s_biomass_prediction_model_tile", tile) )
 
   if(file.exists(path)){
@@ -48,6 +49,16 @@ for(tile in tiles$ID) {
     next
   }
 
+  aml2 <- h2o.loadModel(
+    path = file.path("output/models_v02",
+                     sprintf("%s_biomass_prediction_model_tile", tile)
+    ) )
+
+  mojo_destination <- h2o.save_mojo(aml2,
+                                    path =  file.path("output/models_v02_mojo",
+                                                      sprintf("%s_biomass_prediction_model_tile", tile)) )
+
+  next
   message("doing ", tile)
 
   features <- list.files(paste0("data-raw/tileData/", tile), pattern = "\\.tif$", full.names = TRUE )
@@ -106,19 +117,14 @@ for(tile in tiles$ID) {
   test <- splits[[2]]
 
 
-  # aml2 <- h2o.automl(y = y,
-  #                    training_frame = train,
-  #                    max_models = 24,
-  #                    project_name = sprintf("%s_biomass_prediction_tile", tile))
+  aml2 <- h2o.automl(y = y,
+                    training_frame = train,
+                    max_models = 24,
+                    project_name = sprintf("%s_biomass_prediction_tile", tile))
 
-  # h2o.saveModel(object = aml2@leader, path = "output/models_v02",
-  #               filename =  sprintf("%s_biomass_prediction_model_tile", tile), force = TRUE)
-
-  aml2 <- h2o.loadModel(
-    path = file.path("output/models_v02",
-                     sprintf("%s_biomass_prediction_model_tile", tile)
-    ) )
-
+  h2o.saveModel(object = aml2@leader, path = "output/models_v02",
+               filename =  sprintf("%s_biomass_prediction_model_tile", tile), force = TRUE)
+  imported_model <- h2o.import_mojo(mojo_destination)
 
   modid <- as.data.frame((aml2@leaderboard$model_id ))
   notstacked <- which( !grepl("Stacked", modid$model_id ) )
@@ -140,7 +146,6 @@ h2o.removeAll()
 h2o.shutdown(prompt = FALSE)
 
 
-
 metrics.clean <- lapply(metrics, function(x){ list(RMSE=x[["RMSE"]], r2=x[["r2"]]) } )
 metrics.dt<-data.table::rbindlist(metrics.clean,  idcol = "tile")
 writexl::write_xlsx(list(accuracy=metrics.dt), "output/models_v02/BiomassModelAccuracyMetrics.xlsx")
@@ -148,22 +153,30 @@ metrics.dt$Type <- "49 features"
 
 metrics <- list(
   v02_50feat  = readRDS("output/models_v02/metrics_v02.rds"),
-  v02_50feat_notOk = readRDS("output/models_v02_notOk/metrics_v02.rds"),
-  v02_46feat = readRDS("output/models_v02noalos/metrics_v02.rds"),
-  v01_28feat = readRDS("output/validation/metrics_v1.rds")
+  #v02_50feat_notOk = readRDS("output/models_v02_notOk/metrics_v02.rds"),
+  v02_46feat = readRDS("output/models_v02noalos/metrics_v02.rds")
+  #v01_28feat = readRDS("output/validation/metrics_v1.rds")
 )
 
 out.metric <- foreach(i = metrics) %do% {
-  metrics.old.clean <- lapply(i, function(x){ list(RMSE=x[["RMSE"]], r2=x[["r2"]]) } )
+  metrics.old.clean <- lapply(i, function(x){
+
+    list(RMSE=x[["RMSE"]], r2=x[["r2"]], MAE=x[["MAE"]]) } )
   metrics.dt.old<-data.table::rbindlist(metrics.old.clean,  idcol = "tile")
 
 }
 
 names(out.metric)<-names(metrics)
 final.metric <-  data.table::rbindlist(out.metric, idcol="Type")
+ff =  final.metric %>% filter(tile != "B0" & tile != "B1")
+ff1 = final.metric %>% filter(tile != "B0" & tile != "B1" & Type=="v02_50feat")
+ff2 = final.metric %>% filter(tile != "B0" & tile != "B1" & Type=="v02_46feat")
 
- ggplot(final.metric) +
+
+ggplot(ff) +
    geom_col( aes(x=tile, y=RMSE, fill=Type), position = "dodge" ) +
-   # scale_fill_grey() +
+   scale_fill_grey() +
+   geom_hline( aes(yintercept =median(ff2$RMSE)), lwd=1 ) +
+   geom_hline( aes(yintercept =median(ff1$RMSE)), lwd=1, col="grey" ) +
    theme_bw()
 

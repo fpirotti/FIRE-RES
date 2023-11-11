@@ -51,6 +51,27 @@ nonfare <- c("E0",  "D4", "B0", "B1")
 ### have to fix tiles that do not have a lot of EU data so must be skipped
 classification.lut <- list("B4"="B3", C4="C3",  E4="E3" , F1="E1", E0="E1")
 
+## montero
+foliage.percentage <- c(
+   7.9
+  ,1.8
+  ,11.3
+  ,1.1
+  ,1.9
+  ,7.1
+  ,6.9
+  ,6.9
+  ,6.6
+  ,7.1
+  ,3.2
+  ,2.3
+  ,3.0
+  ,2.1
+  ,1.8
+  ,2.0
+
+)
+
 
 
 mean.pred.intervals <- function(x, y, pred.x) {

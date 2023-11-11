@@ -3,8 +3,34 @@ library(rgeeExtra)
 library("inborutils")
 library("parallel")
 library("terra")
+
 ee_Initialize(quiet = T)
+ee_Initialize(user = 'cirgeo' )
+
 ee_Initialize(user = 'ndef', drive = TRUE )
+
+library(stars)
+
+# 1. Read GeoTIFF file and create a output filename
+tif <- "/archivio/shared/geodati/raster/DEMs/demTinitaly.tif"
+x <- read_stars(tif)
+assetId <- sprintf("%s/%s",ee_get_assethome(),'tinitaly')
+
+# 2. From local to gcs
+gs_uri <- local_to_gcs(
+   x = tif,
+   bucket = 'rgee_dev' # Insert your own bucket here!
+)
+
+# 3. Create an Image Manifest
+manifest <- ee_utils_create_manifest_image(gs_uri, assetId)
+
+# 4. From GCS to Earth Engine
+gcs_to_ee_image(
+   manifest = manifest,
+   overwrite = TRUE
+)
+
 # ee_install_upgrade()
 tiles <- sf::read_sf("data-raw/tiles/bigTiles.gpkg")
 AGB_2018 <- terra::rast("/archivio/shared/geodati/raster/AGB/ESA2018/ESACCI-BIOMASS_L4_AGB_2018_v3_int16_europe.tif")

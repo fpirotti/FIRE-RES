@@ -30,50 +30,47 @@ doit <- function(chunkn){
   #
 
 
+ # fc <- tot.raster$forestCover * ((lossyear.map < 10) + (lossyear.map==21))
 
   df1<- tot.raster[sub.cells.final]
+
+  if(nrow(df1)==0){ return(NA) }
+
+  lostForest <- (lossyear.map$lossyear[sub.cells.final][[1]] > 0) &  (lossyear.map$lossyear[sub.cells.final][[1]] < 21)
+  ff <- (1 - ( lossyear.map$lossyear[sub.cells.final][[1]][lostForest] / 20  ))
+  ##we assume that the forest cover will return to full cover after 20 years
+  df1$forestCover[lostForest] <- df1$forestCover[lostForest] * ff
+  df1$forestCanopyHeight[lostForest] <- df1$forestCanopyHeight[lostForest] * ff
   df1$VegHighestProb<-as.factor(df1$VegHighestProb)
   df1$lcv_landcover<-as.factor(df1$lcv_landcover)
 
   bioclim.data <- bioclim[terra::cellFromXY(bioclim, terra::xyFromCell(tot.raster, sub.cells.final) )]
 
-  newdata <-  h2o::as.h2o( cbind(df1,  bioclim.data) )
-  preds <- h2o.predict(bm, newdata)
+  newdata <-  h2o::as.h2o( cbind(df1,  bioclim.data ) )
+  preds.h2o <- h2o.predict(bm, newdata)
+
 
   # exp <- h2o.residual_analysis_plot(bm, newdata[1:100,])
 
-  preds<-as.vector(preds)
+  preds<-as.vector(preds.h2o)
 
-  ## remove
-  # lossyear <- which(lossyear.map[sub.cells.final] < 17 )
-  # sub.cells.final.noloss <- sub.cells.final[ lossyear ]
+  preds[preds<0]<-0
   final.biomass.output[sub.cells.final]<<-preds
 
-  # for(boot in 1:10){
-  #   sub.cells.final.noloss.sub  <- sample(sub.cells.final.noloss, 2000)
-  #   obs <- final.biomass.output[sub.cells.final.noloss]
-  #
-  #   pred.y <- obs$agb_2020
-  #
-  #   ll<-lm(obs$agb_2020 ~  obs$agb_2018)
-  #   fm1.prd <- predict(ll, interval = "prediction")
-  #   confidence <- fm1.prd[,3] - fm1.prd[,2]
-  #   confidence <- confidence/2
-  #   smoothScatter( (obs$agb_2020 -  obs$agb_2018) /  obs$agb_2018 * 100 ~  obs$agb_2018,
-  #                  ylim = c(-200,200))
-  #   hist( (obs$agb_2020 -  obs$agb_2018) /  obs$agb_2018 * 100, xlim=c(-200,200), breaks=1000 )
-  #   summary(ll)
-  # }
+  nsamples<-5000
+  if(length(sub.cells.final) < nsamples) nsamples <- length(sub.cells.final)
 
-  # preds[preds<1]<-NA
+  idx.sample <- sample(1:length(sub.cells.final), nsamples)
+  sub.cells.final.noloss.sub  <- sub.cells.final[idx.sample]
+  areNoLoss <- (lossyear.map$lossyear[sub.cells.final.noloss.sub][[1]]==0)
+  sub.cells.final.noloss.sub <- sub.cells.final.noloss.sub[areNoLoss]
+  idx.sample.sub <- idx.sample[areNoLoss]
 
-  # final.biomass.output$agb_2020_se[sub.cells.final] <<- preds - final.biomass.output$agb_2018[sub.cells.final]
-  # gc()
-  # final.biomass.output$agb_2020[sub.cells.final2mask]<<-NA
-  # gc()
-  # final.biomass.output$agb_2020_se[sub.cells.final2mask]<<-NA
-  # gc()
-  return(length(sub.cells.final))
+  df <- data.frame(d2018=biomass.output[sub.cells.final.noloss.sub]$agb,
+                   d2020=preds[idx.sample.sub])
+
+
+  return(df)
 }
 
 
@@ -83,10 +80,11 @@ AGB_2018_e <- terra::rast("/archivio/shared/geodati/raster/AGB/ESA2018/ESACCI_BI
 
 metrics<- list()
 
-h2o.init()
 #h2o.clusterStatus()
 
+h2o.init()
 for(tilen in 1:nrow(tiles) ) {
+
 # foreach(tilen = 1:nrow(tiles) ) %do% {
 
 
@@ -95,9 +93,12 @@ for(tilen in 1:nrow(tiles) ) {
   if(is.element(tile, nonfare)) {
     next
   }
-   message("faccio ", tile)
 
-  if(file.exists(sprintf("output/allEU/biomassMap/biomassFromML_%s.tif", tile))){
+    # if(tile!="D2") next
+
+  message("faccio ", tile)
+
+  if(file.exists(sprintf("output/allEU/biomassMap_v03/biomassFromML_%s.tif", tile))){
     message("esiste, ", tile)
     next
   }
@@ -109,15 +110,15 @@ for(tilen in 1:nrow(tiles) ) {
   if(length(features)!=11){
     lc <- terra::rast("/archivio/home/pirotti/Downloads/lcv_landcover.hcl_lucas.corine.eml_f_30m_0..0cm_2020_eumap_epsg3035_v0.2.tif")
 
-    message("faccio ---", tile)
+    message(" PROBLEMA CON  ---", tile)
     # TTT<-terra::resample(lc, terra::rast(features[[5]]), method="mode", filename=file.path("data-raw/tileData", tile, "/lcv_landcover.tif" ), datatype="INT1U" )
-    next
+    stop()
     # return(TTT)
   }
 
   # return(NA)
-  features <- list.files(file.path("data-raw/tileData", tile ),
-                         pattern =  "\\.tif$" , full.names = TRUE )
+  # features <- list.files(file.path("data-raw/tileData", tile ),
+  #                        pattern =  "\\.tif$" , full.names = TRUE )
 
   if(length(features)!=11){
     message("problem, ", tile);
@@ -132,6 +133,7 @@ for(tilen in 1:nrow(tiles) ) {
   ## READ feature RASTERS ----
   tmp <- list()
   bioclim <- NULL
+
   for(feat in features){
 
     vv.temp <- terra::rast(feat)
@@ -156,15 +158,17 @@ for(tilen in 1:nrow(tiles) ) {
   # create mask using new WorldCover from ESA, keep only areas with fraction o
   # of grass/shrub/trees above 0%
 
-  ff2<- terra::app(tmp$LULC_WC_10m, sum)
+  ff2<- terra::app(tmp$LULC_WC_10m, sum, cores=11)
   ff3<- terra::values(ff2)
   mask1<- ff3[,1]!=0
 
 
   ## MASK 3O m LULC corine land COVER ----
   ff3.hcl<- terra::values(tmp$lcv_landcover)
-  remains <- ff3.hcl[,1][mask1]
-  mask <- mask1 & (ff3.hcl[,1] > 9  )  & (ff3.hcl[,1] < 37  )
+  mask.landcover <-  (ff3.hcl[,1] > 9  )  & (ff3.hcl[,1] < 37  )
+  mask <- mask1 & mask.landcover
+
+  mask[ is.na(mask[])] <- FALSE
 
   ## prepare output ---
   ### grab 2018 biomass values ----
@@ -182,6 +186,7 @@ for(tilen in 1:nrow(tiles) ) {
 
   ### prepare 4 layers in raster of biomass values ----
   final.biomass.output <- terra::rast("tmp.tif")
+  final.biomass.output.se <- terra::rast("tmp.tif")
 
 
   chunk <- 5000000
@@ -205,19 +210,34 @@ for(tilen in 1:nrow(tiles) ) {
   }
 
 
+  res <- foreach( i = 1:nchunks ) %do% doit(i)
 
-  res <- foreach( i = 1:nchunks) %do% doit(i)
+  res2 <- lapply(res, function(x){ if(is.null(nrow(x)) ){ return(NULL)} else return(x) })
+  df <- data.table::rbindlist(res2)
 
+  model <- lm(d2018 ~ d2020, data=df)
+  names(final.biomass.output)<-"d2020"
+  preds.se <- predict(final.biomass.output, model, se.fit=TRUE)
+  final.biomass.output.se <- final.biomass.output * preds.se$se.fit
 
-  final.biomass.output2 <- c(final.biomass.output,
-                             (final.biomass.output -  biomass.output),
-                             biomass.output, biomass.outputSD)
+  preds.se$residual.scale[] <- rnorm(ncell(preds.se), mean=1, sd=preds.se$se.fit[])
 
-  names(final.biomass.output2) <- c("agb_2020", "agb_2020_se",
-                                    "agb_2018", "agb_2018_se")
+  preds.se.final <- preds.se$se.fit *  final.biomass.output
+
+  final.biomass.output2 <- c(final.biomass.output, preds.se.final )
+
+   # hh<-terra::spatSample(final.biomass.output2, 100000, cells=T)
+   # hh <- na.omit(hh)
+   # plot(hh$d2020, hh$se.fit , pch="." )
+   # rnorm(200, mean=0, sd=1)
+
+  # # ,
+  # #                            biomass.output, biomass.outputSD)
+  #
+  # names(final.biomass.output2) <- c("agb_2020", "agb_2020_se" )
 
   terra::writeRaster(final.biomass.output2,
-                     sprintf("output/allEU/biomassMap/biomassFromML_%s.tif", tile),
+                     sprintf("output/allEU/biomassMap_v03/biomassFromML_%s.tif", tile),
                      overwrite=TRUE,
                      datatype = "INT2S")
 
@@ -225,4 +245,3 @@ for(tilen in 1:nrow(tiles) ) {
 }
 
 #
-h2o.shutdown()
