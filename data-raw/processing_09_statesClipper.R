@@ -30,6 +30,8 @@ layers <- c("/archivio/shared/geodati/raster/FIRE/fireres/elevation.tif"
 
 for(i in 1:length(states) ){
   state=states[i,]
+  message(state)
+  next
   # if(state$NAME_FIX!="Bulgaria"){
   #   next
   # }

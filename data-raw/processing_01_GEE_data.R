@@ -7,7 +7,10 @@ library("terra")
 ee_Initialize(quiet = T)
 ee_Initialize(user = 'cirgeo' )
 
-ee_Initialize(user = 'ndef', drive = TRUE )
+
+proj3035_30m = ee$Projection('EPSG:3035')$atScale(30);
+
+dir.exists(outputdir) dir.create(outputdir)
 
 library(stars)
 
@@ -445,7 +448,7 @@ getVegIndexes <- function(in.tile){
 }
 
 ## download from google drive ----
-files = googledrive::drive_ls("FIRE-RES-DATA")
+
 ttnames<-c()
 for(file in files$name){
 

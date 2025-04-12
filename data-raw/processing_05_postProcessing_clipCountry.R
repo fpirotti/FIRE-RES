@@ -5,13 +5,16 @@ library("parallel")
 library("terra")
 ee_Initialize(quiet = T)
 # ee_Initialize(user = 'ndef', drive = TRUE )
-ee_Initialize(user = 'fpirotti', drive = TRUE )
+ee_Initialize(user = 'cirgeo',project = 'progetto-eu-h2020-cirgeo', drive = TRUE )
 
 # ee_install_upgrade()
 
 biomass <- ee$Image("projects/ee-fireres/assets/biomassV03tiles/biomassFromML_v03")
-states <- ee$FeatureCollection("projects/ee-fireres/assets/EUstates")
+states <- ee$FeatureCollection("projects/progetto-eu-h2020-cirgeo/assets/global/NUTS_2024_01M_all")
 
+proj3035_30m = ee$Projection('EPSG:3035')$atScale(100);
+
+# print(states$getInfo())
 
 clipit = function(feat){
    name = feat$get("NAME_FIX");
